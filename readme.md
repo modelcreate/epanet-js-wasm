@@ -11,7 +11,7 @@ pnpm run build:dockerimage
 ```diff
 import { Project, Workspace } from "epanet-js";
 
-- const ws = new Workspace.loadModule();
+- const ws = new Workspace();
 + const ws = await Workspace.loadModule();
 const model = new Project(ws);
 ```
