@@ -52,22 +52,38 @@ function getNodeIndex(engine, projectHandle, nodeId, verbose = false) {
     return indexOfNode;
 }
 
+// Fast version that reuses pre-allocated memory
+function getNodeIndexFast(engine, projectHandle, nodeId, ptrNodeId, ptrToIndexHandlePtr) {
+    engine.stringToUTF8(nodeId, ptrNodeId, 4);
+    const errorCode = engine._EN_getnodeindex(projectHandle, ptrNodeId, ptrToIndexHandlePtr);
+    return engine.getValue(ptrToIndexHandlePtr, 'i32');
+}
+
 // Call the function with verbose output for the single test
 indexOfNode = getNodeIndex(engine, projectHandle, "J1", true);
 
 // Benchmark getNodeIndex
 function benchmarkGetNodeIndex(engine, projectHandle, nodeId, iterations = 1000000) {
     console.log(`Starting benchmark for ${iterations} iterations...`);
+    
+    // Pre-allocate memory buffers
+    const ptrNodeId = engine._malloc(4);  // Buffer for node ID string
+    const ptrToIndexHandlePtr = engine._malloc(4);  // Buffer for index result
+    
     const startTime = performance.now();
     
     for (let i = 0; i < iterations; i++) {
-        getNodeIndex(engine, projectHandle, nodeId, false); // Silent mode for benchmarking
+        getNodeIndexFast(engine, projectHandle, nodeId, ptrNodeId, ptrToIndexHandlePtr);
     }
     
     const endTime = performance.now();
     const durationSeconds = (endTime - startTime) / 1000;
     const runsPerSecond = iterations / durationSeconds;
     const millionRunsPerSecond = runsPerSecond / 1000000;
+    
+    // Clean up pre-allocated memory
+    engine._free(ptrNodeId);
+    engine._free(ptrToIndexHandlePtr);
     
     console.log(`Benchmark Results:`);
     console.log(`Total time: ${durationSeconds.toFixed(2)} seconds`);
