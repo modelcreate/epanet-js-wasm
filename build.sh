@@ -13,7 +13,7 @@ echo "============================================="
     -I /opt/epanet/src/include \
     /opt/epanet/build/lib/libepanet2.a \
     -s WASM=1 \
-    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', 'allocateUTF8', '_getversion', '_EN_open', '_EN_close', '_EN_createproject', '_EN_deleteproject', '_EN_init', '_EN_getcount', '_EN_addnode']" \
+    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', 'allocateUTF8', '_getversion', '_EN_open', '_EN_close', '_EN_createproject', '_EN_deleteproject', '_EN_init', '_EN_getcount', '_EN_addnode', '_EN_getnodeindex']" \
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s FORCE_FILESYSTEM=1 \
