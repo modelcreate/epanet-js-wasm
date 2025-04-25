@@ -1,17 +1,21 @@
 //const epanetEngine = require("../dist/epanet_version.js");
 import epanetEngine from "../dist/epanet_version.js";
+import fs from "fs";
 const engine = await epanetEngine();
 
 let errorCode;
 let projectHandle;
 let ptrToProjectHandlePtr;
+let ptrInpFile;
 let ptrRptFile;
 let ptrBinFile;
 let ptrNodeId;
 let ptrToIndexHandlePtr;
 let indexOfNode;
 
-
+const inpFileName = "./tests/my-network.inp";
+const inpText = fs.readFileSync(inpFileName);
+engine.FS.writeFile("net1.inp", inpText);
 
 // Create Project
 ptrToProjectHandlePtr = engine._malloc(4);
@@ -20,24 +24,16 @@ console.log(`_EN_createproject: ${errorCode}`);
 projectHandle = engine.getValue(ptrToProjectHandlePtr, 'i32');
 engine._free(ptrToProjectHandlePtr);
 
-// Initialize Project
+
+ptrInpFile = engine.allocateUTF8("net1.inp");
 ptrRptFile = engine.allocateUTF8("report.rpt");
 ptrBinFile = engine.allocateUTF8("out.bin");
-errorCode = engine._EN_init(projectHandle, ptrRptFile, ptrBinFile, 1, 1); // Units=GPM, Headloss=H-W
+
+errorCode = engine._EN_open(projectHandle, ptrInpFile, ptrRptFile, ptrBinFile);
 console.log(`_EN_init: ${errorCode}`);
+engine._free(ptrInpFile);
 engine._free(ptrRptFile);
 engine._free(ptrBinFile);
-
-// Add Node
-ptrNodeId = engine.allocateUTF8("J1");
-ptrToIndexHandlePtr = engine._malloc(4);
-errorCode = engine._EN_addnode(projectHandle, ptrNodeId, 0 /* JUNCTION */, ptrToIndexHandlePtr);
-console.log(`_EN_addnode: ${errorCode}`);
-indexOfNode = engine.getValue(ptrToIndexHandlePtr, 'i32');
-console.log(`Node index: ${indexOfNode}`);
-engine._free(ptrNodeId);
-engine._free(ptrToIndexHandlePtr);
-
 
 // Get Node Index
 function getNodeIndex(engine, projectHandle, nodeId) {
@@ -53,12 +49,51 @@ function getNodeIndex(engine, projectHandle, nodeId) {
 }
 
 // Call the function with verbose output for the single test
-indexOfNode = getNodeIndex(engine, projectHandle, "J1");
+indexOfNode = getNodeIndex(engine, projectHandle, "vLfEJv8pqDKcgWS2GkUmI");
 
 
 // Delete Project
 errorCode = engine._EN_deleteproject(projectHandle);
 console.log(`_EN_deleteproject: ${errorCode}`);
+
+
+//// Initialize Project
+//ptrRptFile = engine.allocateUTF8("report.rpt");
+//ptrBinFile = engine.allocateUTF8("out.bin");
+//errorCode = engine._EN_init(projectHandle, ptrRptFile, ptrBinFile, 1, 1); // Units=GPM, Headloss=H-W
+//console.log(`_EN_init: ${errorCode}`);
+//engine._free(ptrRptFile);
+//engine._free(ptrBinFile);
+
+// Add Node
+//ptrNodeId = engine.allocateUTF8("J1");
+//ptrToIndexHandlePtr = engine._malloc(4);
+//errorCode = engine._EN_addnode(projectHandle, ptrNodeId, 0 /* JUNCTION */, ptrToIndexHandlePtr);
+//console.log(`_EN_addnode: ${errorCode}`);
+//indexOfNode = engine.getValue(ptrToIndexHandlePtr, 'i32');
+//console.log(`Node index: ${indexOfNode}`);
+//engine._free(ptrNodeId);
+//engine._free(ptrToIndexHandlePtr);
+
+
+//// Get Node Index
+//function getNodeIndex(engine, projectHandle, nodeId) {
+//    const ptrNodeId = engine.allocateUTF8(nodeId);
+//    const ptrToIndexHandlePtr = engine._malloc(4);
+//    const errorCode = engine._EN_getnodeindex(projectHandle, ptrNodeId, ptrToIndexHandlePtr);
+//    console.log(`_EN_getnodeindex: ${errorCode}`);
+//    const indexOfNode = engine.getValue(ptrToIndexHandlePtr, 'i32');
+//    console.log(`Retrieved node index for ${nodeId}: ${indexOfNode}`);
+//    engine._free(ptrNodeId);
+//    engine._free(ptrToIndexHandlePtr);
+//    return indexOfNode;
+//}
+//
+//// Call the function with verbose output for the single test
+//indexOfNode = getNodeIndex(engine, projectHandle, "J1");
+
+
+
 
 
 
