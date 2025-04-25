@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "build:dockerimage": "docker build -t epanet-js-engine .",
     "build:dockerimage-arm64": "docker build --build-arg EMSDK_TAG_SUFFIX='-arm64' -t epanet-js-engine .",
-    "build:emscripten": "docker run --rm -v \"$(pwd):/src\" epanet-js-engine ./build.sh"
+    "build:emscripten": "docker run --rm -v \"$(pwd):/src\" epanet-js-engine ./build.sh",
+    "build": "npm run build:dockerimage-arm64 && npm run build:emscripten"
   },
   "keywords": [],
   "devDependencies": {},
