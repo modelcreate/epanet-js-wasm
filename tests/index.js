@@ -3,59 +3,71 @@ import epanetEngine from "../dist/epanet_version.js";
 import fs from "fs";
 const engine = await epanetEngine();
 
-let errorCode;
-let projectHandle;
-let ptrToProjectHandlePtr;
-let ptrInpFile;
-let ptrRptFile;
-let ptrBinFile;
-let ptrNodeId;
-let ptrToIndexHandlePtr;
-let indexOfNode;
+async function runEpanetTest(iteration) {
+    console.log(`\nStarting iteration ${iteration}`);
+    const startTime = performance.now();
 
-const inpFileName = "./tests/my-network.inp";
-const inpText = fs.readFileSync(inpFileName);
-engine.FS.writeFile("net1.inp", inpText);
+    let errorCode;
+    let projectHandle;
+    let ptrToProjectHandlePtr;
+    let ptrInpFile;
+    let ptrRptFile;
+    let ptrBinFile;
+    let ptrNodeId;
+    let ptrToIndexHandlePtr;
+    let indexOfNode;
 
-// Create Project
-ptrToProjectHandlePtr = engine._malloc(4);
-errorCode = engine._EN_createproject(ptrToProjectHandlePtr);
-console.log(`_EN_createproject: ${errorCode}`);
-projectHandle = engine.getValue(ptrToProjectHandlePtr, 'i32');
-engine._free(ptrToProjectHandlePtr);
+    const inpFileName = "./tests/my-network.inp";
+    const inpText = fs.readFileSync(inpFileName);
+    engine.FS.writeFile("net1.inp", inpText);
 
+    // Create Project
+    ptrToProjectHandlePtr = engine._malloc(4);
+    errorCode = engine._EN_createproject(ptrToProjectHandlePtr);
+    console.log(`_EN_createproject: ${errorCode}`);
+    projectHandle = engine.getValue(ptrToProjectHandlePtr, 'i32');
+    engine._free(ptrToProjectHandlePtr);
 
-ptrInpFile = engine.allocateUTF8("net1.inp");
-ptrRptFile = engine.allocateUTF8("report.rpt");
-ptrBinFile = engine.allocateUTF8("out.bin");
+    ptrInpFile = engine.allocateUTF8("net1.inp");
+    ptrRptFile = engine.allocateUTF8("report.rpt");
+    ptrBinFile = engine.allocateUTF8("out.bin");
 
-errorCode = engine._EN_open(projectHandle, ptrInpFile, ptrRptFile, ptrBinFile);
-console.log(`_EN_init: ${errorCode}`);
-engine._free(ptrInpFile);
-engine._free(ptrRptFile);
-engine._free(ptrBinFile);
+    errorCode = engine._EN_open(projectHandle, ptrInpFile, ptrRptFile, ptrBinFile);
+    console.log(`_EN_init: ${errorCode}`);
+    engine._free(ptrInpFile);
+    engine._free(ptrRptFile);
+    engine._free(ptrBinFile);
 
-// Get Node Index
-function getNodeIndex(engine, projectHandle, nodeId) {
-    const ptrNodeId = engine.allocateUTF8(nodeId);
-    const ptrToIndexHandlePtr = engine._malloc(4);
-    const errorCode = engine._EN_getnodeindex(projectHandle, ptrNodeId, ptrToIndexHandlePtr);
-    console.log(`_EN_getnodeindex: ${errorCode}`);
-    const indexOfNode = engine.getValue(ptrToIndexHandlePtr, 'i32');
-    console.log(`Retrieved node index for ${nodeId}: ${indexOfNode}`);
-    engine._free(ptrNodeId);
-    engine._free(ptrToIndexHandlePtr);
-    return indexOfNode;
+    // Get Node Index
+    function getNodeIndex(engine, projectHandle, nodeId) {
+        const ptrNodeId = engine.allocateUTF8(nodeId);
+        const ptrToIndexHandlePtr = engine._malloc(4);
+        const errorCode = engine._EN_getnodeindex(projectHandle, ptrNodeId, ptrToIndexHandlePtr);
+        console.log(`_EN_getnodeindex: ${errorCode}`);
+        const indexOfNode = engine.getValue(ptrToIndexHandlePtr, 'i32');
+        console.log(`Retrieved node index for ${nodeId}: ${indexOfNode}`);
+        engine._free(ptrNodeId);
+        engine._free(ptrToIndexHandlePtr);
+        return indexOfNode;
+    }
+
+    // Call the function with verbose output for the single test
+    indexOfNode = getNodeIndex(engine, projectHandle, "vLfEJv8pqDKcgWS2GkUmI");
+
+    // Delete Project
+    errorCode = engine._EN_deleteproject(projectHandle);
+    console.log(`_EN_deleteproject: ${errorCode}`);
+
+    const endTime = performance.now();
+    const durationSeconds = (endTime - startTime) / 1000;
+    console.log(`Iteration ${iteration} completed in ${durationSeconds} seconds`);
 }
 
-// Call the function with verbose output for the single test
-indexOfNode = getNodeIndex(engine, projectHandle, "vLfEJv8pqDKcgWS2GkUmI");
-
-
-// Delete Project
-errorCode = engine._EN_deleteproject(projectHandle);
-console.log(`_EN_deleteproject: ${errorCode}`);
-
+// Run the test multiple times
+const numberOfIterations = 10;
+for (let i = 1; i <= numberOfIterations; i++) {
+    await runEpanetTest(i);
+}
 
 //// Initialize Project
 //ptrRptFile = engine.allocateUTF8("report.rpt");
