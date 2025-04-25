@@ -14,5 +14,6 @@ int getversion()
 EMSCRIPTEN_KEEPALIVE
 int open_epanet(EN_Project ph, const char *inpFile, const char *rptFile, const char *outFile)
 {
+
     return EN_open(ph, inpFile, rptFile, outFile);
 }
