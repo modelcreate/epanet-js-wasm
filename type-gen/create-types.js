@@ -158,28 +158,47 @@ for (let i = 0; i < lines.length; i++) {
     // Outside JSDoc - looking for function signature after a completed JSDoc
     if (!inJSDoc && currentJSDocLines.length > 0 && line) {
         // We just finished a JSDoc block, and this is the first non-empty line after it.
-        // Assume this line STARTS the function signature. It might span multiple lines.
+
+        // Check for common non-function definitions FIRST before assuming it's a function
+        const isTypeDef = line.startsWith('typedef');
+        const isStructDef = line.startsWith('struct') && line.includes('{'); // Basic check
+        const isEnumDef = line.startsWith('enum') && line.includes('{'); // Basic check
+        const isDefine = line.startsWith('#define');
+
+        if (isTypeDef || isStructDef || isEnumDef || isDefine) {
+            // It's a known non-function definition following a JSDoc.
+            // Log it as INFO, don't treat it as an error.
+            // console.log(`INFO: Skipping non-function definition at line ${i + 1}: ${line}`);
+
+            // IMPORTANT: Reset the JSDoc context and skip to the next line
+            currentJSDocLines = [];
+            continue; // Go to the next iteration of the 'for' loop
+        }
+        // ========= ADDITION END =========
+
+
+        // If it wasn't a non-function definition handled above, NOW assume it might be a function signature.
         let signature = line;
         let signatureEndLine = i;
         // Read ahead to find the closing parenthesis and semicolon
         let parenLevel = (line.match(/\(/g) || []).length - (line.match(/\)/g) || []).length;
         let foundSemicolon = line.endsWith(';');
 
-        if (!line.includes('(')) {
-             // This line doesn't even start a function call potentially - maybe a struct or enum?
-             failures.push(`Line ${i + 1}: Expected function signature after JSDoc, but found: ${line}`);
-             currentJSDocLines = []; // Reset JSDoc context
-             continue;
-        }
 
         while (!foundSemicolon && signatureEndLine + 1 < lines.length) {
             signatureEndLine++;
             const nextLine = lines[signatureEndLine].trim();
+
+            // Stop reading ahead if we hit another JSDoc or preprocessor directive
+            if (nextLine.startsWith('/**') || nextLine.startsWith('#')) {
+                 failures.push(`Line ${i+1}-${signatureEndLine}: Signature potentially interrupted by comment/directive before semicolon.`);
+                 foundSemicolon = false; // Mark as not found cleanly
+                 break; // Stop reading ahead
+            }
+
             signature += ' ' + nextLine; // Combine lines
             parenLevel += (nextLine.match(/\(/g) || []).length - (nextLine.match(/\)/g) || []).length;
-            if (parenLevel === 0 && nextLine.includes(')')) {
-                // If we found the closing paren, look for semicolon soon
-            }
+            // Removed redundant check inside loop: if (parenLevel === 0 && nextLine.includes(')')) {}
              if (nextLine.endsWith(';')) { // Found the end
                 foundSemicolon = true;
              }
@@ -191,29 +210,63 @@ for (let i = 0; i < lines.length; i++) {
         }
 
         if (!foundSemicolon) {
-             failures.push(`Line ${i + 1}: Could not find terminating semicolon for potential function signature starting with: ${line}`);
-             currentJSDocLines = []; // Reset JSDoc context
-             continue;
+             failures.push(`Line ${i + 1}-${signatureEndLine+1}: Could not find terminating semicolon for potential function signature starting with: ${line}`);
+             // Reset JSDoc context because we failed to parse this block
+             currentJSDocLines = [];
+             continue; // Skip to next line
         }
 
         // --- Try to Parse the Signature ---
         signature = signature.replace(/\s+/g, ' ').trim(); // Normalize spaces
         const parenOpenIndex = signature.indexOf('(');
         const parenCloseIndex = signature.lastIndexOf(')');
-        const semicolonIndex = signature.lastIndexOf(';');
+        const semicolonIndex = signature.lastIndexOf(';'); // Should exist if foundSemicolon is true
 
+
+        // Adjusted failure condition check
+        let parseFailed = false;
         if (parenOpenIndex === -1 || parenCloseIndex === -1 || parenCloseIndex < parenOpenIndex || semicolonIndex < parenCloseIndex ) {
-            failures.push(`Line ${i + 1}-${signatureEndLine + 1}: Malformed function signature structure: ${signature}`);
+            failures.push(`Line ${i + 1}-${signatureEndLine + 1}: Malformed signature structure (parentheses/semicolon): ${signature}`);
+            parseFailed = true;
         } else {
+
             const beforeParams = signature.substring(0, parenOpenIndex).trim();
             const paramString = signature.substring(parenOpenIndex + 1, parenCloseIndex).trim();
 
             const partsBeforeParams = beforeParams.split(' ');
-            const functionName = partsBeforeParams.pop().replace('DLLEXPORT', '').trim(); // Handle DLLEXPORT macro simply
-            const returnType = partsBeforeParams.join(' ').replace('DLLEXPORT', '').trim(); // Handle DLLEXPORT potentially before type
+            // Handle potential macro between type and name like 'int DLLEXPORT funcName'
+            let functionName = '';
+            let returnType = '';
+            if (partsBeforeParams.length > 0) {
+                 functionName = partsBeforeParams[partsBeforeParams.length - 1];
+                 // Assume everything before the last part is the return type (might include macros)
+                 returnType = partsBeforeParams.slice(0, -1).join(' ');
+                 // Simple macro handling (remove common ones if needed, adjust as necessary)
+                 returnType = returnType.replace('DLLEXPORT', '').trim();
+                 functionName = functionName.replace('DLLEXPORT', '').trim();
+                 // If returnType is empty, maybe it was just 'int funcName'
+                 if (!returnType && partsBeforeParams.length === 1) {
+                     // This case is ambiguous, maybe the first part was the type?
+                     // Let's assume the logic needs refinement if this happens often.
+                     // For now, stick with the original split logic result.
+                     // A more robust parser would handle types/macros better.
+                 } else if (!returnType && partsBeforeParams.length > 1) {
+                     // If type is still empty after removing last part, something is odd.
+                     // Default to the full string before function name?
+                     returnType = partsBeforeParams.slice(0, -1).join(' ');
+                 } else if (!returnType) {
+                      // Single word before '(', assume it's the return type
+                      returnType = functionName;
+                      functionName = ''; // This indicates a likely parse failure
+                 }
+
+
+            }
+
 
             if (!functionName || !returnType) {
-                 failures.push(`Line ${i + 1}-${signatureEndLine + 1}: Could not extract function name or return type from: ${beforeParams}`);
+                 failures.push(`Line ${i + 1}-${signatureEndLine + 1}: Could not extract function name or return type from: ${beforeParams}. Signature: ${signature}`);
+                 parseFailed = true; // Mark as failed
             } else {
                  try {
                     const parsedParams = parseParametersString(paramString);
@@ -242,11 +295,12 @@ for (let i = 0; i < lines.length; i++) {
                      i = signatureEndLine;
 
                  } catch (e) {
-                     failures.push(`Line ${i + 1}-${signatureEndLine + 1}: Error parsing parameters or JSDoc for ${functionName}: ${e.message}. Signature: ${signature}`);
+                     failures.push(`Line ${i + 1}-${signatureEndLine + 1}: Error processing params/JSDoc for ${functionName}: ${e.message}. Signature: ${signature}`);
+                     parseFailed = true; // Mark as failed
                  }
             }
         }
-        // Reset JSDoc context for the next block
+        // Reset JSDoc context AFTER attempting to process the block following it
         currentJSDocLines = [];
     } else if (!inJSDoc && line && !line.startsWith('//') && !line.startsWith('#')) {
          // Non-empty, non-comment, non-directive line outside JSDoc and not following one.
