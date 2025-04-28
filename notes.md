@@ -2,6 +2,8 @@
 
 Remove allocateUTF8 as its depreicated 
 
+stackAlloc, stackSave, and stackRestore
+
 
 
 ## CWRAP

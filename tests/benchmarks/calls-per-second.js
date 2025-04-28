@@ -8,7 +8,29 @@ import { Project, Workspace, NodeType, FlowUnits, HeadLossType } from "epanet-js
 function getNodeIndexFast(engine, projectHandle, nodeId, ptrToIndexHandlePtr) {
     const ptrNodeId = engine.stringToNewUTF8(nodeId)
     const errorCode = engine._EN_getnodeindex(projectHandle, ptrNodeId, ptrToIndexHandlePtr);
-    return engine.getValue(ptrToIndexHandlePtr, 'i32');
+    const value = engine.getValue(ptrToIndexHandlePtr, 'i32');
+    engine._free(ptrNodeId);
+    return value;
+}
+
+
+function getNodeIndexFastStack(engine, projectHandle, nodeId, ptrToIndexHandlePtr) {
+    const stack = engine.stackSave(); // 1. Save stack pointer
+    try {
+        const requiredBytes = engine.lengthBytesUTF8(nodeId) + 1; // 2. Calculate size
+        const ptrNodeId = engine.stackAlloc(requiredBytes);     // 3. Allocate on stack
+        engine.stringToUTF8(nodeId, ptrNodeId, requiredBytes); // 4. Copy JS string to stack memory
+
+        // 5. Call C function with stack pointer
+        const errorCode = engine._EN_getnodeindex(projectHandle, ptrNodeId, ptrToIndexHandlePtr);
+        // Handle errorCode if necessary
+
+        // 6. Result is read from the pre-allocated ptrToIndexHandlePtr
+        return engine.getValue(ptrToIndexHandlePtr, 'i32');
+
+    } finally {
+        engine.stackRestore(stack); // 7. Restore stack pointer (frees stack memory)
+    }
 }
 
 function getNodeIndexCwarp(engine, fn, projectHandle, nodeId, ptrToIndexHandlePtr) {
@@ -20,7 +42,7 @@ function getNodeIndexCwarp(engine, fn, projectHandle, nodeId, ptrToIndexHandlePt
 async function benchmarkNodeIndexCalls(iterations = 1000000) {
     const engine = await epanetEngine();
 
-    const getNodeIndex = engine.cwrap('EN_getnodeindex', 'number', ['number','string','number'])
+    //const getNodeIndex = engine.cwrap('EN_getnodeindex', 'number', ['number','string','number'])
 
     let errorCode;
     let projectHandle;
@@ -70,6 +92,7 @@ async function benchmarkNodeIndexCalls(iterations = 1000000) {
     for (let i = 0; i < iterations; i++) {
         getNodeIndexFast(engine, projectHandle, "J1",  benchmarkPtrToIndexHandlePtr);
         //getNodeIndexCwarp(engine, getNodeIndex, projectHandle, "J1", benchmarkPtrToIndexHandlePtr);
+        //getNodeIndexFastStack(engine, projectHandle, "J1", ptrToIndexHandlePtr)
     }
 
 
