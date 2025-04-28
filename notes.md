@@ -3,6 +3,20 @@
 Remove allocateUTF8 as its depreicated 
 
 
+
+## CWRAP
+Promising and makes things simplier but it reduces the amount of calls from 32M to 7M, not worth it for now
+
+```
+const getNodeIndex = engine.cwrap('EN_getnodeindex', 'number', ['number','string','number'])
+
+const test = getNodeIndex(projectHandle, "J1", valuePtr);
+const value = engine.getValue(valuePtr, 'i32');
+console.log(`return: ${test} test value: ${value}`);
+engine._free(valuePtr);
+```
+
+
 ## Sun Apr 27
 
 

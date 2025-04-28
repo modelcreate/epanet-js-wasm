@@ -11,9 +11,17 @@ function getNodeIndexFast(engine, projectHandle, nodeId, ptrToIndexHandlePtr) {
     return engine.getValue(ptrToIndexHandlePtr, 'i32');
 }
 
+function getNodeIndexCwarp(engine, fn, projectHandle, nodeId, ptrToIndexHandlePtr) {
+    const errorCode = fn(projectHandle, nodeId, ptrToIndexHandlePtr);
+    return engine.getValue(ptrToIndexHandlePtr, 'i32');
+}
+
 // Benchmark function that returns performance metrics
 async function benchmarkNodeIndexCalls(iterations = 1000000) {
     const engine = await epanetEngine();
+
+    const getNodeIndex = engine.cwrap('EN_getnodeindex', 'number', ['number','string','number'])
+
     let errorCode;
     let projectHandle;
     let ptrToProjectHandlePtr;
@@ -61,8 +69,21 @@ async function benchmarkNodeIndexCalls(iterations = 1000000) {
     const startTime = performance.now();
     for (let i = 0; i < iterations; i++) {
         getNodeIndexFast(engine, projectHandle, "J1",  benchmarkPtrToIndexHandlePtr);
+        //getNodeIndexCwarp(engine, getNodeIndex, projectHandle, "J1", benchmarkPtrToIndexHandlePtr);
     }
+
+
+    // CWRAP TEST
     
+    //const valuePtr = engine._malloc(4);
+    //const test = getNodeIndex(projectHandle, "J1", valuePtr);
+    //const value = engine.getValue(valuePtr, 'i32');
+    //console.log(`return: ${test} test value: ${value}`);
+    //engine._free(valuePtr);
+    //const test2 = getNodeIndexCwarp(engine, getNodeIndex, projectHandle, "J1", valuePtr);
+    //console.log(`test2: ${test2}`);
+
+
     const endTime = performance.now();
     const durationSeconds = (endTime - startTime) / 1000;
     const runsPerSecond = iterations / durationSeconds;
