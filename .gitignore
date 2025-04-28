@@ -7,3 +7,7 @@
 
 # Networks
 /tests/networks
+
+
+# Typegen
+/type-gen/epanet2_2.d.ts
