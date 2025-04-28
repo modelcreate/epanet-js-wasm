@@ -9,19 +9,26 @@ echo "============================================="
 
     mkdir -p build
 
-    emcc -o3 ./src/epanet_version.c -o epanet_version.js \
+    emcc -O0  ./src/epanet_version.c -o epanet_version.js \
     -I /opt/epanet/src/include \
     /opt/epanet/build/lib/libepanet2.a \
     -s WASM=1 \
-    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', 'allocateUTF8', '_getversion', '_EN_open', '_EN_close',\
+    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', 'allocateUTF8', '_getversion', '_EN_open', '_EN_close', '_EN_solveH',\
                             '_EN_createproject', '_EN_deleteproject', '_EN_init', '_EN_getcount', '_EN_addnode',\
                             '_EN_getnodeindex', '_EN_runproject']" \
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s FORCE_FILESYSTEM=1 \
-    -s EXPORTED_RUNTIME_METHODS='' \
-    -s EXPORT_ALL=1 \
-    -s ALLOW_MEMORY_GROWTH=1
+    -s EXPORTED_RUNTIME_METHODS=['FS','getValue','lengthBytesUTF8','stringToUTF8'] \
+    # -s ASSERTIONS=0 \
+    # -s SAFE_HEAP=0 \
+    # -s INITIAL_MEMORY=1024MB \
+    # --closure 1
+    #-s ALLOW_MEMORY_GROWTH=1 \
+    # -msimd128 \
+     
+    
+    #-s EXPORT_ALL=1 \
     #-s SINGLE_FILE=1 \
     #-s "EXPORTED_FUNCTIONS=['_getversion', '_open_epanet', '_EN_close']" \
 

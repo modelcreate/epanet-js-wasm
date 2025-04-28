@@ -92,7 +92,7 @@ function benchmarkGetNodeIndex(engine, projectHandle, nodeId, iterations = 10000
 }
 
 // Run the benchmark
-benchmarkGetNodeIndex(engine, projectHandle, "J1");
+benchmarkGetNodeIndex(engine, projectHandle, "J1", 60_000_000);
 
 // Delete Project
 errorCode = engine._EN_deleteproject(projectHandle);
