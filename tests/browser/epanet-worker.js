@@ -1,7 +1,7 @@
 // epanet-worker.js
 
 // Import the wasm module - path is relative to this worker file
-import epanetEngine from '../dist/epanet_version.js';
+import epanetEngine from '../../dist/epanet_version.js';
 
 // Define the log function for the worker to send messages back
 function workerLog(message) {
