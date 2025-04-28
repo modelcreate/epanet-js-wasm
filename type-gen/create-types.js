@@ -71,14 +71,38 @@ function parseJSDoc(jsdocLines) {
     let currentTag = null;
     let currentParamName = null;
 
-    for (const line of jsdocLines) {
-        let cleanLine = line.trim();
-        // Remove leading *, optional space
-        if (cleanLine.startsWith('*')) {
-            cleanLine = cleanLine.substring(1).trim();
+    // Process lines, cleaning start/end markers more carefully
+    for (const rawLine of jsdocLines) { // Iterate over original lines
+        let line = rawLine.trim();
+
+        // Remove starting /** (often on first line)
+        if (line.startsWith('/**')) {
+            line = line.substring(3).trim();
         }
+        // Remove starting * (common on subsequent lines)
+        // Ensure it's followed by space or is the only char potentially
+        if (line.startsWith('* ')) {
+             line = line.substring(2);
+        } else if (line.startsWith('*') && line.length > 1 && !line.startsWith('*/')) {
+             line = line.substring(1).trim(); // Avoid stripping */ if it's '*/*'
+        } else if (line === '*') {
+             line = ''; // Handle lines containing only '*'
+        }
+
+
+        // Remove trailing */ from the line content, common on the last line
+        if (line.endsWith('*/')) {
+            line = line.substring(0, line.length - 2).trim();
+        }
+
+
+        // Now 'line' should be the reasonably cleaned content for this line
+        let cleanLine = line;
+
+        // Skip if line becomes empty after cleaning
         if (!cleanLine) continue;
 
+        // Existing tag processing logic...
         if (cleanLine.startsWith('@brief')) {
             data.brief = cleanLine.substring(6).trim();
             currentTag = 'brief';
@@ -95,23 +119,48 @@ function parseJSDoc(jsdocLines) {
             const description = parts.slice(1).join(' ');
             if (currentParamName) {
                  data.params[currentParamName] = { description: description, isOut: isOut };
+            } else {
+                 // Handle cases where @param might be empty or malformed
+                 console.warn(` - Malformed @param tag found: ${cleanLine}`);
+                 currentTag = null; // Stop appending to avoid errors
             }
         } else if (cleanLine.startsWith('@return')) {
             data.returnDesc = cleanLine.substring(7).trim();
             currentTag = 'return';
         } else if (currentTag) {
             // Append to the description of the current tag
-            if (currentTag === 'brief') data.brief += ' ' + cleanLine;
-            else if (currentTag === 'return') data.returnDesc += ' ' + cleanLine;
-            else if (currentTag === 'param' && currentParamName && data.params[currentParamName]) {
-                data.params[currentParamName].description += ' ' + cleanLine;
+            if (currentTag === 'brief') {
+                data.brief += ' ' + cleanLine;
+            } else if (currentTag === 'return') {
+                 data.returnDesc += ' ' + cleanLine;
+            } else if (currentTag === 'param' && currentParamName && data.params[currentParamName]) {
+                 // Append only if currentParamName was successfully identified
+                 data.params[currentParamName].description += ' ' + cleanLine;
             }
+        } else {
+             // Line doesn't start with a known tag and isn't continuing a previous tag.
+             // Could be part of the initial brief description before any tags.
+             if (!data.brief && Object.keys(data.params).length === 0 && !data.returnDesc) {
+                  data.brief += (data.brief ? ' ' : '') + cleanLine;
+             }
         }
     }
-     // Clean up extra spaces
+
+     // Clean up extra spaces accumulated during appending
     data.brief = data.brief.replace(/\s+/g, ' ').trim();
     data.returnDesc = data.returnDesc.replace(/\s+/g, ' ').trim();
-    Object.values(data.params).forEach(p => p.description = p.description.replace(/\s+/g, ' ').trim());
+    Object.values(data.params).forEach(p => {
+        if (p.description) { // Check if description exists before cleaning
+             p.description = p.description.replace(/\s+/g, ' ').trim();
+        } else {
+             p.description = ''; // Ensure description is at least an empty string
+        }
+    });
+
+    // Add default return description if none was found
+    if (!data.returnDesc) {
+        data.returnDesc = "an error code."; // Default assumption for EPANET API
+    }
 
     return data;
 }
