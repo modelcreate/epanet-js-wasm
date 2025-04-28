@@ -10,52 +10,142 @@ const MODULE_INTERFACE_NAME = 'EpanetModule';
 
 // --- Helper Functions ---
 
-function mapCTypeToTsType(cType, isOutParam = false) {
-    cType = cType.replace('const ', '').trim(); // Ignore const for TS typing
-    if (KNOWN_POINTER_TYPES.includes(cType) || cType.endsWith('*')) {
+function mapCTypeToTsType(cType) {
+
+    // Clean type for checks
+    const cleanCType = cType.replace('const ', '').trim();
+
+    // Simple check for function pointer syntax BEFORE other pointer checks
+    if (cleanCType.includes('(*') && cleanCType.includes(')(')) {
+         // Contains '(*' and likely argument parentheses ')(', assume function pointer
+         return POINTER_TYPE_NAME;
+    }
+
+    // --- Existing Logic for other pointers/types ---
+    if (KNOWN_POINTER_TYPES.includes(cleanCType) || cleanCType.endsWith('*')) {
         return POINTER_TYPE_NAME;
     }
+
     // Basic types
-    switch (cType) {
+    switch (cleanCType) {
         case 'int':
         case 'long':
         case 'short':
         case 'float':
         case 'double':
-        // Potentially add enum types if you parse them elsewhere
             return 'number';
         case 'void':
-            return 'void';
+            return 'void'; // Usually only for return types
         default:
-            console.warn(` - Unhandled C type encountered: ${cType}. Defaulting to 'any'.`);
+            // Check if it might be an enum or struct pointer missed earlier
+            if (cleanCType.startsWith('EN_') || cleanCType.startsWith('struct')) {
+                 console.warn(` - Assuming pointer type for unknown C type: ${cleanCType}.`);
+                 return POINTER_TYPE_NAME;
+            }
+            console.warn(` - Unhandled C type encountered: ${cleanCType}. Defaulting to 'any'.`);
             return 'any'; // Fallback for unknown types
     }
 }
 
 function parseParametersString(paramString) {
-    if (!paramString.trim()) {
-        return []; // No parameters
+    if (!paramString.trim() || paramString.trim().toLowerCase() === 'void') {
+        return []; // No parameters or explicitly void
     }
     const params = [];
-    // Split by comma, but handle potential commas within types later if needed (unlikely for this API)
-    const parts = paramString.split(',');
-    for (const part of parts) {
-        const trimmedPart = part.trim();
-        if (!trimmedPart) continue;
+    const correctlySplitParts = []; // Store correctly split parameter strings
+    let level = 0; // Parenthesis nesting level
+    let currentPart = '';
 
-        const lastSpaceIndex = trimmedPart.lastIndexOf(' ');
-        if (lastSpaceIndex === -1) {
-            // Could be a single type like 'void' - handle if necessary
-            console.warn(` - Could not parse parameter part: ${trimmedPart}`);
-            continue;
+
+    for (let i = 0; i < paramString.length; i++) {
+        const char = paramString[i];
+
+        if (char === '(') {
+            level++;
+        } else if (char === ')') {
+            level--;
         }
 
-        const paramType = trimmedPart.substring(0, lastSpaceIndex).trim();
-        const paramName = trimmedPart.substring(lastSpaceIndex + 1).trim().replace('*', ''); // Remove potential * from name
+        // Only split by comma if we are at the top level (level 0)
+        if (char === ',' && level === 0) {
+            correctlySplitParts.push(currentPart.trim());
+            currentPart = ''; // Reset for the next part
+        } else {
+            currentPart += char; // Append character to the current parameter part
+        }
+    }
+    // Add the last part after the loop finishes
+    if (currentPart.trim()) {
+        correctlySplitParts.push(currentPart.trim());
+    }
+
+
+    // Now process each correctly split part
+    for (const part of correctlySplitParts) {
+        const trimmedPart = part; // Already trimmed by the logic above
+        if (!trimmedPart) continue;
+
+        let paramType = '';
+        let paramName = '';
+
+        // Check for function pointer syntax FIRST
+        const starParenIndex = trimmedPart.indexOf('(*');
+        // Ensure the closing paren is AFTER the opening one
+        const closingParenIndex = starParenIndex !== -1 ? trimmedPart.indexOf(')', starParenIndex + 2) : -1;
+
+        if (starParenIndex !== -1 && closingParenIndex !== -1) {
+            // Likely a function pointer. Extract name between '(*' and ')'
+            paramName = trimmedPart.substring(starParenIndex + 2, closingParenIndex).trim();
+            paramType = trimmedPart; // Store the full complex signature as C type
+
+            // Basic validation: check if there's another '(' after the name's ')' for arguments
+            if (trimmedPart.indexOf('(', closingParenIndex) === -1) {
+                 console.warn(` - Potential function pointer parse issue (missing args parenthesis?): ${trimmedPart}`);
+            }
+             console.log(`INFO: Detected function pointer: Name='${paramName}', FullType='${paramType}'`);
+
+        } else {
+            // Assume regular parameter: Use 'last space' logic
+            const lastSpaceIndex = trimmedPart.lastIndexOf(' ');
+            if (lastSpaceIndex === -1) {
+                 // Check if it's just a type name (e.g. from an old K&R style definition - less likely here)
+                 if (trimmedPart.length > 0){
+                     // Assume the whole part is the type? Or maybe the name? Risky.
+                     // Let's assume type for now, name is missing or implied?
+                     paramType = trimmedPart;
+                     paramName = `param${params.length + 1}`; // Generate a placeholder name
+                     console.warn(` - Could not parse parameter part (no space?): '${trimmedPart}'. Assuming type only, using placeholder name '${paramName}'.`);
+                 } else {
+                    console.warn(` - Could not parse empty parameter part after split.`);
+                    continue;
+                 }
+            } else {
+                paramType = trimmedPart.substring(0, lastSpaceIndex).trim();
+                paramName = trimmedPart.substring(lastSpaceIndex + 1).trim();
+
+                // Clean potential '*' from name, ensure type has '*' if needed
+                let typeNeedsPointer = false;
+                 if (paramName.startsWith('*')) { typeNeedsPointer = true; paramName = paramName.substring(1).trim(); }
+                 if(paramType.endsWith('*')){ typeNeedsPointer = true; }
+                 // Check the original part between type and name for '*'
+                 if (!typeNeedsPointer && trimmedPart.substring(lastSpaceIndex + 1).includes('*') && !paramName.includes('*')) {
+                      typeNeedsPointer = true;
+                 }
+
+                 if (typeNeedsPointer && !paramType.endsWith('*')) { paramType += ' *'; }
+                 // Clean name just in case '*' was attached
+                 paramName = paramName.replace('*','');
+            }
+        }
+
+        if (!paramName || !paramType) {
+             console.warn(` - Failed to extract type or name for parameter part: ${trimmedPart}`);
+             continue;
+        }
 
         params.push({
             name: paramName,
-            cType: paramType + (trimmedPart.includes('*') ? ' *' : ''), // Re-add * to type if present
+            cType: paramType,
         });
     }
     return params;
@@ -309,7 +399,7 @@ for (let i = 0; i < lines.length; i++) {
                             p.description = jsdocData.params[p.name].description;
                             p.isOut = jsdocData.params[p.name].isOut;
                         }
-                        p.tsType = mapCTypeToTsType(p.cType, p.isOut);
+                        p.tsType = mapCTypeToTsType(p.cType);
                     });
 
                     functions.push({
