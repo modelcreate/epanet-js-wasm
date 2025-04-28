@@ -5,8 +5,8 @@ import { Project, Workspace, NodeType, FlowUnits, HeadLossType } from "epanet-js
 
 
 // Helper function to get node index with pre-allocated memory
-function getNodeIndexFast(engine, projectHandle, nodeId, ptrNodeId, ptrToIndexHandlePtr) {
-    engine.stringToUTF8(nodeId, ptrNodeId, 4);
+function getNodeIndexFast(engine, projectHandle, nodeId, ptrToIndexHandlePtr) {
+    const ptrNodeId = engine.stringToNewUTF8(nodeId)
     const errorCode = engine._EN_getnodeindex(projectHandle, ptrNodeId, ptrToIndexHandlePtr);
     return engine.getValue(ptrToIndexHandlePtr, 'i32');
 }
@@ -31,13 +31,9 @@ async function benchmarkNodeIndexCalls(iterations = 1000000) {
     engine._free(ptrToProjectHandlePtr);
 
     // Initialize Project
-    const lenRptFile = engine.lengthBytesUTF8("report.rpt") + 1;
-    ptrRptFile = engine._malloc(lenRptFile);
-    engine.stringToUTF8("report.rpt", ptrRptFile, lenRptFile);
+    ptrRptFile = engine.stringToNewUTF8("report.rpt")
+    ptrBinFile = engine.stringToNewUTF8("out.bin")
 
-    const lenBinFile = engine.lengthBytesUTF8("out.bin") + 1;
-    ptrBinFile = engine._malloc(lenBinFile);
-    engine.stringToUTF8("out.bin", ptrBinFile, lenBinFile);
 
 
     errorCode = engine._EN_init(projectHandle, ptrRptFile, ptrBinFile, 1, 1);
@@ -46,9 +42,7 @@ async function benchmarkNodeIndexCalls(iterations = 1000000) {
     engine._free(ptrBinFile);
 
     // Add Node
-    const lenPtrNodeId = engine.lengthBytesUTF8("J1") + 1;
-    ptrNodeId = engine._malloc(lenPtrNodeId);
-    engine.stringToUTF8("out.bin", ptrNodeId, lenPtrNodeId);
+    ptrNodeId = engine.stringToNewUTF8("J1")
 
 
     ptrToIndexHandlePtr = engine._malloc(4);
@@ -62,10 +56,11 @@ async function benchmarkNodeIndexCalls(iterations = 1000000) {
     const benchmarkPtrNodeId = engine._malloc(4);
     const benchmarkPtrToIndexHandlePtr = engine._malloc(4);
     
-    const startTime = performance.now();
     
+
+    const startTime = performance.now();
     for (let i = 0; i < iterations; i++) {
-        getNodeIndexFast(engine, projectHandle, "J1", benchmarkPtrNodeId, benchmarkPtrToIndexHandlePtr);
+        getNodeIndexFast(engine, projectHandle, "J1",  benchmarkPtrToIndexHandlePtr);
     }
     
     const endTime = performance.now();

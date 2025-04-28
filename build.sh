@@ -19,7 +19,7 @@ echo "============================================="
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s FORCE_FILESYSTEM=1 \
-    -s EXPORTED_RUNTIME_METHODS=['FS','getValue','lengthBytesUTF8','stringToUTF8'] \
+    -s EXPORTED_RUNTIME_METHODS=['FS','getValue','lengthBytesUTF8','stringToUTF8','stringToNewUTF8'] \
      -s ASSERTIONS=0 \
    -s ALLOW_MEMORY_GROWTH=1 \
     # -s SAFE_HEAP=0 \
