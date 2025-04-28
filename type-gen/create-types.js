@@ -158,85 +158,107 @@ function parseJSDoc(jsdocLines) {
         params: {}, // Keyed by param name
         returnDesc: '',
     };
-    let currentTag = null;
-    let currentParamName = null;
+    let currentTag = null; // Tracks the last tag encountered (@brief, @param, @return)
+    let currentParamName = null; // Tracks the name associated with the current @param tag
 
-    // Process lines, cleaning start/end markers more carefully
     for (const rawLine of jsdocLines) {
         let line = rawLine.trim();
 
-        // Remove starting /** (often on first line)
-        if (line.startsWith('/**')) {
-            line = line.substring(3).trim();
-        }
-        // Remove starting * (common on subsequent lines)
-        if (line.startsWith('* ')) {
-             line = line.substring(2);
-        } else if (line.startsWith('*') && line.length > 1 && !line.startsWith('*/')) {
-             line = line.substring(1).trim();
-        } else if (line === '*') {
-             line = '';
-        }
-
-        // Remove trailing */ from the line content, common on the last line
-        if (line.endsWith('*/')) {
-            line = line.substring(0, line.length - 2).trim();
-        }
+        // Clean line start/end markers (*, /**, */)
+        if (line.startsWith('/**')) { line = line.substring(3).trim(); }
+        else if (line.startsWith('* ')) { line = line.substring(2); }
+        else if (line.startsWith('*') && line.length > 1 && !line.startsWith('*/')) { line = line.substring(1).trim(); }
+        else if (line === '*') { line = ''; }
+        if (line.endsWith('*/')) { line = line.substring(0, line.length - 2).trim(); }
 
         let cleanLine = line;
-        if (!cleanLine) continue;
 
-        // Tag processing logic...
+        // Determine if this line starts a new tag
+        let startsWithTag = false;
         if (cleanLine.startsWith('@brief')) {
             data.brief = cleanLine.substring(6).trim();
             currentTag = 'brief';
+            currentParamName = null; // Reset param name tracking
+            startsWithTag = true;
         } else if (cleanLine.startsWith('@param')) {
-            // ... (existing @param logic) ...
-             currentTag = 'param'; // Make sure currentTag is set
-             // Assign description from the tag line itself first
-             if (currentParamName) {
-                 data.params[currentParamName].description = parts.slice(1).join(' ');
-             }
+            currentTag = 'param';
+            let remainingLine = cleanLine.substring(6).trim();
+            let isOut = false;
+            const directionMatch = remainingLine.match(/^\[(in|out|in,out)\]\s*/);
+            if (directionMatch) {
+                isOut = directionMatch[0].includes('out');
+                remainingLine = remainingLine.substring(directionMatch[0].length);
+            }
+
+            const firstSpaceIndex = remainingLine.indexOf(' ');
+            let namePart = '';
+            let descriptionPart = '';
+            if (firstSpaceIndex !== -1) {
+                namePart = remainingLine.substring(0, firstSpaceIndex).trim();
+                descriptionPart = remainingLine.substring(firstSpaceIndex + 1).trim();
+            } else {
+                namePart = remainingLine.trim(); // Assume only name if no space
+                descriptionPart = '';
+            }
+
+            currentParamName = namePart; // Track the name for potential multi-line description
+
+            if (currentParamName) {
+                // Initialize param info if it doesn't exist, then set description
+                if (!data.params[currentParamName]) {
+                     data.params[currentParamName] = { description: '', isOut: isOut };
+                }
+                data.params[currentParamName].description = descriptionPart; // Assign/overwrite description from this line
+                data.params[currentParamName].isOut = isOut; // Update isOut flag
+            } else {
+                console.warn(` - Malformed @param tag (no name): ${cleanLine}`);
+                currentTag = null; // Reset tag state if param is invalid
+            }
+            startsWithTag = true;
         } else if (cleanLine.startsWith('@return')) {
             data.returnDesc = cleanLine.substring(7).trim();
             currentTag = 'return';
-        } else if (currentTag) {
-            // Append to the description of the current tag using NEWLINES
-            const appendContent = '\n' + cleanLine; // Prepend newline for subsequent lines
-            if (currentTag === 'brief') {
-                data.brief += appendContent;
-            } else if (currentTag === 'return') {
-                 data.returnDesc += appendContent;
-            } else if (currentTag === 'param' && currentParamName && data.params[currentParamName]) {
-                 data.params[currentParamName].description += appendContent;
-            }
-        } else {
-             // Line doesn't start with a known tag and isn't continuing a previous tag.
-             // Assume it's part of the initial brief description.
-             data.brief += (data.brief ? '\n' : '') + cleanLine; // Use newline if brief already started
+            currentParamName = null; // Reset param name tracking
+            startsWithTag = true;
         }
-    }
 
-     // Clean up ONLY leading/trailing whitespace, preserve intentional newlines
+        // If the line didn't start with a tag, AND we have an active tag context,
+        // append the line content to the description of that active tag.
+        if (!startsWithTag && currentTag && cleanLine) {
+            const appendSeparator = '\n'; // Use newline for multi-line
+
+            if (currentTag === 'brief') {
+                data.brief += (data.brief ? appendSeparator : '') + cleanLine;
+            } else if (currentTag === 'return') {
+                 data.returnDesc += (data.returnDesc ? appendSeparator : '') + cleanLine;
+            } else if (currentTag === 'param' && currentParamName && data.params[currentParamName]) {
+                 // Append to the tracked parameter's description
+                 data.params[currentParamName].description += (data.params[currentParamName].description ? appendSeparator : '') + cleanLine;
+            }
+        }
+        // If the line didn't start with a tag AND we don't have an active tag context,
+        // it might be the very first line(s) of the brief description.
+        else if (!startsWithTag && !currentTag && cleanLine) {
+             data.brief += (data.brief ? '\n' : '') + cleanLine;
+             // Should we implicitly set currentTag = 'brief'? Maybe not needed.
+        }
+    } // End for loop
+
+     // Final Trim Cleanup (should preserve newlines within descriptions)
     data.brief = data.brief.trim();
     data.returnDesc = data.returnDesc.trim();
     Object.values(data.params).forEach(p => {
-        if (p.description) {
-             p.description = p.description.trim();
-        } else {
-             p.description = '';
-        }
+        // Ensure description is a string, then trim.
+        p.description = (p.description || '').trim();
     });
-
 
     // Add default return description if none was found
     if (!data.returnDesc) {
-        data.returnDesc = "an error code."; // Default assumption for EPANET API
+        data.returnDesc = "an error code.";
     }
 
     return data;
 }
-
 // --- Main Parsing Logic ---
 
 console.log(`Reading header file: ${HEADER_FILE_PATH}`);
