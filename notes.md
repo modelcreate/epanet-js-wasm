@@ -1,3 +1,8 @@
+# Mon Apr 28
+
+Remove allocateUTF8 as its depreicated 
+
+
 ## Sun Apr 27
 
 
@@ -15,6 +20,10 @@ Some other flags that can help with performance but not enabled yet:
     # -msimd128 \
     -flto 
 
+
+
+Doubles iterations from 17  million calls per second to 32
+-s ASSERTIONS=0
     
 
 ## Fri Apr 25

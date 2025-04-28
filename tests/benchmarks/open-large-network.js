@@ -32,9 +32,18 @@ async function benchmarkOpenLargeNetworkWasm(iterations = 3) {
         projectHandle = engine.getValue(ptrToProjectHandlePtr, 'i32');
         engine._free(ptrToProjectHandlePtr);
 
-        ptrInpFile = engine.allocateUTF8("net1.inp");
-        ptrRptFile = engine.allocateUTF8("report.rpt");
-        ptrBinFile = engine.allocateUTF8("out.bin");
+
+        const lenInpFile = engine.lengthBytesUTF8("net1.inp") + 1;
+        ptrInpFile = engine._malloc(lenInpFile);
+        engine.stringToUTF8("net1.inp", ptrInpFile, lenInpFile);
+
+        const lenRptFile = engine.lengthBytesUTF8("report.rpt") + 1;
+        ptrRptFile = engine._malloc(lenRptFile);
+        engine.stringToUTF8("report.rpt", ptrRptFile, lenRptFile);
+
+        const lenBinFile = engine.lengthBytesUTF8("out.bin") + 1;
+        ptrBinFile = engine._malloc(lenBinFile);
+        engine.stringToUTF8("out.bin", ptrBinFile, lenBinFile);
 
         errorCode = engine._EN_open(projectHandle, ptrInpFile, ptrRptFile, ptrBinFile);
         if (errorCode !== 0) throw new Error(`Failed to open project: ${errorCode}`);

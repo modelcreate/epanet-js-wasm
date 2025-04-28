@@ -13,19 +13,19 @@ echo "============================================="
     -I /opt/epanet/src/include \
     /opt/epanet/build/lib/libepanet2.a \
     -s WASM=1 \
-    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', 'allocateUTF8', '_getversion', '_EN_open', '_EN_close', '_EN_solveH',\
+    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', '_getversion', '_EN_open', '_EN_close', '_EN_solveH',\
                             '_EN_createproject', '_EN_deleteproject', '_EN_init', '_EN_getcount', '_EN_addnode',\
                             '_EN_getnodeindex', '_EN_runproject']" \
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s FORCE_FILESYSTEM=1 \
     -s EXPORTED_RUNTIME_METHODS=['FS','getValue','lengthBytesUTF8','stringToUTF8'] \
-    # -s ASSERTIONS=0 \
+     -s ASSERTIONS=0 \
+   -s ALLOW_MEMORY_GROWTH=1 \
     # -s SAFE_HEAP=0 \
     # -s INITIAL_MEMORY=1024MB \
-    # --closure 1
-    #-s ALLOW_MEMORY_GROWTH=1 \
     # -msimd128 \
+    # --closure 1 \
      
     
     #-s EXPORT_ALL=1 \

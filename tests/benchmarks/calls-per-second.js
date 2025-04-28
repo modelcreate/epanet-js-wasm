@@ -31,15 +31,26 @@ async function benchmarkNodeIndexCalls(iterations = 1000000) {
     engine._free(ptrToProjectHandlePtr);
 
     // Initialize Project
-    ptrRptFile = engine.allocateUTF8("report.rpt");
-    ptrBinFile = engine.allocateUTF8("out.bin");
+    const lenRptFile = engine.lengthBytesUTF8("report.rpt") + 1;
+    ptrRptFile = engine._malloc(lenRptFile);
+    engine.stringToUTF8("report.rpt", ptrRptFile, lenRptFile);
+
+    const lenBinFile = engine.lengthBytesUTF8("out.bin") + 1;
+    ptrBinFile = engine._malloc(lenBinFile);
+    engine.stringToUTF8("out.bin", ptrBinFile, lenBinFile);
+
+
     errorCode = engine._EN_init(projectHandle, ptrRptFile, ptrBinFile, 1, 1);
     if (errorCode !== 0) throw new Error(`Failed to initialize project: ${errorCode}`);
     engine._free(ptrRptFile);
     engine._free(ptrBinFile);
 
     // Add Node
-    ptrNodeId = engine.allocateUTF8("J1");
+    const lenPtrNodeId = engine.lengthBytesUTF8("J1") + 1;
+    ptrNodeId = engine._malloc(lenPtrNodeId);
+    engine.stringToUTF8("out.bin", ptrNodeId, lenPtrNodeId);
+
+
     ptrToIndexHandlePtr = engine._malloc(4);
     errorCode = engine._EN_addnode(projectHandle, ptrNodeId, 0, ptrToIndexHandlePtr);
     if (errorCode !== 0) throw new Error(`Failed to add node: ${errorCode}`);
