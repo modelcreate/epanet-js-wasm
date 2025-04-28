@@ -1,4 +1,4 @@
-import epanetEngine from "../dist/epanet_version.js";
+import epanetEngine from "../../dist/epanet_version.js";
 import fs from "fs";
 const engine = await epanetEngine();
 

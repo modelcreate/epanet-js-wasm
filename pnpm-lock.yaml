@@ -1,0 +1,29 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      epanet-js:
+        specifier: ^0.7.0
+        version: 0.7.0
+
+packages:
+
+  '@model-create/epanet-engine@0.7.0':
+    resolution: {integrity: sha512-arXG4bOKUZLR1LkkBvo3f6yteFUGsXvYhxvdj9S/TJdz/xHhHUspcepTzV8KKIh3HEWMu0iTcRtgjJwvmeUcpw==}
+
+  epanet-js@0.7.0:
+    resolution: {integrity: sha512-LOi9Lpu8s4b88O84wqr5hFdyQAd48UMTjZG+uShg2qCaG0fPLBcHS322Gkp96KiWwOMZixVSxBzAkWj7+lnFmg==}
+
+snapshots:
+
+  '@model-create/epanet-engine@0.7.0': {}
+
+  epanet-js@0.7.0:
+    dependencies:
+      '@model-create/epanet-engine': 0.7.0

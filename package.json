@@ -11,7 +11,9 @@
     "build": "npm run build:dockerimage-arm64 && npm run build:emscripten"
   },
   "keywords": [],
-  "devDependencies": {},
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "epanet-js": "^0.7.0"
+  }
 }
