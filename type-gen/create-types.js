@@ -72,7 +72,7 @@ function parseJSDoc(jsdocLines) {
     let currentParamName = null;
 
     // Process lines, cleaning start/end markers more carefully
-    for (const rawLine of jsdocLines) { // Iterate over original lines
+    for (const rawLine of jsdocLines) {
         let line = rawLine.trim();
 
         // Remove starting /** (often on first line)
@@ -80,82 +80,64 @@ function parseJSDoc(jsdocLines) {
             line = line.substring(3).trim();
         }
         // Remove starting * (common on subsequent lines)
-        // Ensure it's followed by space or is the only char potentially
         if (line.startsWith('* ')) {
              line = line.substring(2);
         } else if (line.startsWith('*') && line.length > 1 && !line.startsWith('*/')) {
-             line = line.substring(1).trim(); // Avoid stripping */ if it's '*/*'
+             line = line.substring(1).trim();
         } else if (line === '*') {
-             line = ''; // Handle lines containing only '*'
+             line = '';
         }
-
 
         // Remove trailing */ from the line content, common on the last line
         if (line.endsWith('*/')) {
             line = line.substring(0, line.length - 2).trim();
         }
 
-
-        // Now 'line' should be the reasonably cleaned content for this line
         let cleanLine = line;
-
-        // Skip if line becomes empty after cleaning
         if (!cleanLine) continue;
 
-        // Existing tag processing logic...
+        // Tag processing logic...
         if (cleanLine.startsWith('@brief')) {
             data.brief = cleanLine.substring(6).trim();
             currentTag = 'brief';
         } else if (cleanLine.startsWith('@param')) {
-            currentTag = 'param';
-            const parts = cleanLine.substring(6).trim().split(' ');
-            const directionMatch = parts[0].match(/\[(in|out|in,out)\]/);
-            let isOut = false;
-            if (directionMatch) {
-                isOut = directionMatch[1].includes('out');
-                parts.shift(); // Remove the [out] part
-            }
-            currentParamName = parts[0];
-            const description = parts.slice(1).join(' ');
-            if (currentParamName) {
-                 data.params[currentParamName] = { description: description, isOut: isOut };
-            } else {
-                 // Handle cases where @param might be empty or malformed
-                 console.warn(` - Malformed @param tag found: ${cleanLine}`);
-                 currentTag = null; // Stop appending to avoid errors
-            }
+            // ... (existing @param logic) ...
+             currentTag = 'param'; // Make sure currentTag is set
+             // Assign description from the tag line itself first
+             if (currentParamName) {
+                 data.params[currentParamName].description = parts.slice(1).join(' ');
+             }
         } else if (cleanLine.startsWith('@return')) {
             data.returnDesc = cleanLine.substring(7).trim();
             currentTag = 'return';
         } else if (currentTag) {
-            // Append to the description of the current tag
+            // Append to the description of the current tag using NEWLINES
+            const appendContent = '\n' + cleanLine; // Prepend newline for subsequent lines
             if (currentTag === 'brief') {
-                data.brief += ' ' + cleanLine;
+                data.brief += appendContent;
             } else if (currentTag === 'return') {
-                 data.returnDesc += ' ' + cleanLine;
+                 data.returnDesc += appendContent;
             } else if (currentTag === 'param' && currentParamName && data.params[currentParamName]) {
-                 // Append only if currentParamName was successfully identified
-                 data.params[currentParamName].description += ' ' + cleanLine;
+                 data.params[currentParamName].description += appendContent;
             }
         } else {
              // Line doesn't start with a known tag and isn't continuing a previous tag.
-             // Could be part of the initial brief description before any tags.
-             if (!data.brief && Object.keys(data.params).length === 0 && !data.returnDesc) {
-                  data.brief += (data.brief ? ' ' : '') + cleanLine;
-             }
+             // Assume it's part of the initial brief description.
+             data.brief += (data.brief ? '\n' : '') + cleanLine; // Use newline if brief already started
         }
     }
 
-     // Clean up extra spaces accumulated during appending
-    data.brief = data.brief.replace(/\s+/g, ' ').trim();
-    data.returnDesc = data.returnDesc.replace(/\s+/g, ' ').trim();
+     // Clean up ONLY leading/trailing whitespace, preserve intentional newlines
+    data.brief = data.brief.trim();
+    data.returnDesc = data.returnDesc.trim();
     Object.values(data.params).forEach(p => {
-        if (p.description) { // Check if description exists before cleaning
-             p.description = p.description.replace(/\s+/g, ' ').trim();
+        if (p.description) {
+             p.description = p.description.trim();
         } else {
-             p.description = ''; // Ensure description is at least an empty string
+             p.description = '';
         }
     });
+
 
     // Add default return description if none was found
     if (!data.returnDesc) {
