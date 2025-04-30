@@ -13,3 +13,4 @@ node_modules
 /type-gen/epanet2_2.d.ts
 
 /packages/epanet-engine/dist/*
+/packages/epanet-js/dist/*
