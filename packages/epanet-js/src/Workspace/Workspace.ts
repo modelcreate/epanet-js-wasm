@@ -20,7 +20,7 @@ export class Workspace {
     }
   }
 
-  private get instance(): NonNullable<typeof this._instance> {
+  get instance(): NonNullable<typeof this._instance> {
     this.checkEngineLoaded();
     return this._instance!;
   }

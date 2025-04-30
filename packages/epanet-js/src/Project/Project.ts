@@ -2,20 +2,20 @@ import {
     ApiFunctionDefinition,
     EpanetMemoryType,
     MemoryTypes,
-    EmscriptenModule,
-    EpanetProject,
-    Workspace,
-    NodeType,
-    NodeProperty,
     CountType
     // Import other needed types/enums
 } from '../types';
+
+import type {EpanetModule} from '@model-create/epanet-engine';
+
+import {  Workspace } from '../';
+import { NodeType, NodeProperty } from '../enum';
 import { apiDefinitions } from '../apiDefinitions';
 
 class Project /* Consider implementing specific interfaces for clarity */ {
     _ws: Workspace;
-    _instance: EmscriptenModule;
-    _EN: EpanetProject;
+    private _projectHandle: number;
+    _EN: EpanetModule;
     private _epanetVersionInt: number = -1; // Stores detected version (e.g., 20200)
     private readonly _absoluteMinVersion = 20200; // Absolute minimum supported (e.g., 2.2.0)
 
@@ -33,25 +33,17 @@ class Project /* Consider implementing specific interfaces for clarity */ {
     // ... other version-specific methods ...
 
 
+    // Real implementation here:
+    addNode!: (id: string, type: NodeType) => number;
+    init!: (reportFile: string, binaryFile: string, hydOption: number, qualOption: number) => void;
+    setJunctionData!: (nodeIndex: number, demand: number, patternIndex: number, demandCategory: string) => void;
+    getNodeType!: (nodeIndex: number) => NodeType;
+
     constructor(ws: Workspace) {
         this._ws = ws;
-        this._instance = ws._instance;
+        this._EN = ws.instance;
+        this._projectHandle = this._createProject();
 
-        // --- Initial WASM Module Instance Setup ---
-        if (!this._ws._instance || !this._ws._instance.Epanet) {
-            throw new Error("Epanet WASM module not properly initialized or loaded.");
-        }
-        try {
-            // Assumes Epanet might be a class constructor
-            this._EN = new this._ws._instance.Epanet();
-        } catch (e) {
-            // Fallback if Epanet is just an object/namespace on the module
-            this._EN = this._ws._instance.Epanet;
-            if (typeof this._EN !== 'object' || this._EN === null) {
-                throw new Error("Failed to get a valid Epanet project handle from WASM module.");
-            }
-        }
-        // --- End Initial Setup ---
 
         // --- EPANET Version Check ---
         // Detect and store the version, throw only if below absolute minimum
@@ -64,12 +56,26 @@ class Project /* Consider implementing specific interfaces for clarity */ {
         // --- End API Build ---
     }
 
+    private _createProject(): number {
+        const ptrToProjectHandlePtr = this._EN._malloc(4);
+
+        const errorCode = this._EN._EN_createproject(ptrToProjectHandlePtr);
+        if (errorCode !== 0) {
+            throw new Error(`Failed to create project: ${errorCode}`);
+        }
+        const projectHandle = this._EN.getValue(ptrToProjectHandlePtr, 'i32');
+        this._EN._free(ptrToProjectHandlePtr);
+
+        return projectHandle;
+
+    }
+
     // --- Version Checking Logic ---
     private _getAndVerifyEpanetVersion(): number {
-        const getVersionFunc = this._EN['EN_getversion'] as Function | undefined;
+        const getVersionFunc = this._EN['_EN_getversion'] as Function | undefined;
         if (typeof getVersionFunc !== 'function') {
             throw new Error(
-                `Loaded EPANET WASM module missing 'EN_getversion'. Minimum required version is ${this._formatVersionInt(this._absoluteMinVersion)} (likely pre-v2.2).`
+                `Loaded EPANET WASM module missing '_EN_getversion'. Minimum required version is ${this._formatVersionInt(this._absoluteMinVersion)} (likely pre-v2.2).`
             );
         }
 
@@ -77,7 +83,7 @@ class Project /* Consider implementing specific interfaces for clarity */ {
         let actualVersion: number = -1;
 
         try {
-            versionPtr = this._instance._malloc(4); // sizeof(int)
+            versionPtr = this._EN._malloc(4); // sizeof(int)
             if (versionPtr === 0) { throw new Error("Memory allocation failed for version check."); }
 
             const errorCode = getVersionFunc.apply(this._EN, [versionPtr]);
@@ -86,14 +92,14 @@ class Project /* Consider implementing specific interfaces for clarity */ {
                   throw new Error(`EN_getversion failed with code ${errorCode}. Cannot verify EPANET version.`);
              }
 
-            actualVersion = this._instance.getValue(versionPtr, 'i32');
+            actualVersion = this._EN.getValue(versionPtr, 'i32');
 
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
             throw new Error(`Failed to determine EPANET version: ${message}`);
         } finally {
             if (versionPtr !== 0) {
-                try { this._instance._free(versionPtr); } catch(e) {/* ignore cleanup error */}
+                try { this._EN._free(versionPtr); } catch(e) {/* ignore cleanup error */}
             }
         }
 
@@ -155,7 +161,7 @@ class Project /* Consider implementing specific interfaces for clarity */ {
                 }
 
                 // Call the WASM function
-                const errorCode = wasmFunction.apply(this._EN, [...args, ...outputPointers]);
+                const errorCode = wasmFunction.apply(this._EN, [this._projectHandle, ...args, ...outputPointers]);
 
                 // Check EPANET error code
                 this._checkError(errorCode); // Throws on critical error
@@ -181,7 +187,7 @@ class Project /* Consider implementing specific interfaces for clarity */ {
                  if (outputPointers.length > 0) {
                      console.warn(`Cleaning up ${outputPointers.length} pointer(s) after error in ${methodName}.`);
                      outputPointers.forEach(ptr => {
-                         if (ptr !== 0) { try { this._instance._free(ptr); } catch(e) {/* ignore */} }
+                         if (ptr !== 0) { try { this._EN._free(ptr); } catch(e) {/* ignore */} }
                      });
                  }
                  throw error; // Re-throw the original error
@@ -200,7 +206,7 @@ class Project /* Consider implementing specific interfaces for clarity */ {
                 case 'long': memsize = 8; break; // Assume 64-bit
                 case 'double': default: memsize = 8; break;
             }
-            const pointer = this._instance._malloc(memsize);
+            const pointer = this._EN._malloc(memsize);
             if (pointer === 0) throw new Error(`Failed to allocate ${memsize} bytes for type ${t}`);
             return pointer;
         });
@@ -212,11 +218,11 @@ class Project /* Consider implementing specific interfaces for clarity */ {
 
         try {
             if (type === 'char' || type === 'char-title') {
-                value = this._instance.UTF8ToString(pointer);
+                value = this._EN.UTF8ToString(pointer);
             } else {
                 const emsType = type === 'int' ? 'i32' : type === 'long' ? 'i64' : 'double';
                  // Note: Handle potential BigInt for i64 if necessary
-                value = this._instance.getValue(pointer, emsType);
+                value = this._EN.getValue(pointer, emsType);
             }
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
@@ -225,7 +231,7 @@ class Project /* Consider implementing specific interfaces for clarity */ {
             // Free memory *after* reading or attempting to read
             // Add check to prevent freeing 0, though allocateMemory should prevent 0 pointers.
             if(pointer !== 0) {
-                 try { this._instance._free(pointer); } catch(e) { console.error(`Error freeing pointer ${pointer}: ${e}`); }
+                 try { this._EN._free(pointer); } catch(e) { console.error(`Error freeing pointer ${pointer}: ${e}`); }
             }
         }
         return value;

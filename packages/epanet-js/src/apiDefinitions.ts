@@ -8,22 +8,38 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
   // EN_getversion handled directly in constructor, no public wrapper needed by default
 
   getCount: {
-    wasmFunctionName: 'EN_getcount', // int EN_getcount(int countcode, int *count)
+    wasmFunctionName: '_EN_getcount', // int EN_getcount(int countcode, int *count)
     outputArgTypes: ['int']
   },
   getNodeIndex: {
-    wasmFunctionName: 'EN_getnodeindex', // int EN_getnodeindex(char *id, int *index)
+    wasmFunctionName: '_EN_getnodeindex', // int EN_getnodeindex(char *id, int *index)
+    outputArgTypes: ['int']
+  },
+  addNode: {
+    wasmFunctionName: '_EN_addnode', // int EN_addnode(char *id, int type)
+    outputArgTypes: ['int']
+  },
+  init: {
+    wasmFunctionName: '_EN_init', // int EN_init(char *inpfile, char *rptfile, char *binfile, int hydopt, int qualopt)
+    outputArgTypes: []
+  },
+  setJunctionData: {
+    wasmFunctionName: '_EN_setjunctiondata', // int EN_setjunctiondata(int index, double demand, int patternindex, char *demandcategory)
+    outputArgTypes: []
+  },
+  getNodeType: {
+    wasmFunctionName: '_EN_getnodetype', // int EN_getnodetype(int index, int *type)
     outputArgTypes: ['int']
   },
   // ... other baseline functions (e.g., open, close, init, getTitle, saveInpFile) ...
 
   // --- Network Node Functions ---
   getNodeValue: {
-    wasmFunctionName: 'EN_getnodevalue', // int EN_getnodevalue(int index, int propcode, double *value)
+    wasmFunctionName: '_EN_getnodevalue', // int EN_getnodevalue(int index, int propcode, double *value)
     outputArgTypes: ['double']
   },
   setNodeValue: {
-      wasmFunctionName: 'EN_setnodevalue', // int EN_setnodevalue(int index, int propcode, double value)
+      wasmFunctionName: '_EN_setnodevalue', // int EN_setnodevalue(int index, int propcode, double value)
       outputArgTypes: [] // No output pointers
   },
   // ... other baseline node functions ...
