@@ -1,13 +1,15 @@
 /dist
 /build
-/node_modules
+node_modules
 
 .DS_Store
 
 
 # Networks
-/tests/networks
+/packages/epanet-engine/tests/networks
 
 
 # Typegen
 /type-gen/epanet2_2.d.ts
+
+/packages/epanet-engine/dist/*
