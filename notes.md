@@ -1,3 +1,7 @@
+# Wed Apr 30
+
+Switch to pnpm monorepo and added vitest
+
 # Mon Apr 28
 
 Remove allocateUTF8 as its depreicated 

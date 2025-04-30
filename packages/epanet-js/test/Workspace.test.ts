@@ -2,7 +2,8 @@ import {  test, expect } from 'vitest';
 import { Workspace } from '../src';
 
 const workspace = new Workspace();
-test('Returns workspace version', () => {
+test('Returns workspace version', async () => {
+    await workspace.loadModule();
   expect(workspace.version).toBe(20200);
 });
 

@@ -9,19 +9,20 @@ echo "============================================="
 
     mkdir -p build
 
-    emcc -O0  ./src/epanet_version.c -o epanet_version.js \
+    emcc -O0  ./src/epanet_version.c -o index.js \
     -I /opt/epanet/src/include \
     /opt/epanet/build/lib/libepanet2.a \
     -s WASM=1 \
-    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', '_getversion', '_EN_open', '_EN_close', '_EN_solveH',\
+    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', '_getversion','_EN_getversion', '_EN_open', '_EN_close', '_EN_solveH',\
                             '_EN_createproject', '_EN_deleteproject', '_EN_init', '_EN_getcount', '_EN_addnode',\
-                            '_EN_getnodeindex', '_EN_runproject']" \
+                            '_EN_getnodeindex', '_EN_runproject', '_EN_geterror']" \
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s FORCE_FILESYSTEM=1 \
-    -s EXPORTED_RUNTIME_METHODS=['FS','getValue','lengthBytesUTF8','stringToUTF8','stringToNewUTF8','stackSave','cwrap','stackRestore','stackAlloc'] \
+    -s EXPORTED_RUNTIME_METHODS=['FS','getValue','lengthBytesUTF8','stringToUTF8','stringToNewUTF8','UTF8ToString','stackSave','cwrap','stackRestore','stackAlloc'] \
      -s ASSERTIONS=0 \
    -s ALLOW_MEMORY_GROWTH=1 \
+    -s SINGLE_FILE=1 \
     # -s SAFE_HEAP=0 \
     # -s INITIAL_MEMORY=1024MB \
     # -msimd128 \
@@ -66,8 +67,8 @@ echo "============================================="
 
 
     mkdir -p dist
-    mv epanet_version.js dist
-    mv epanet_version.wasm dist
+    mv index.js dist
+    #mv epanet_version.wasm dist
 
 )
 echo "============================================="
