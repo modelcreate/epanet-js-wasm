@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "EPANET WASM engine",
   "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "build:dockerimage": "docker build -t epanet-js-engine .",
