@@ -11,6 +11,10 @@
 
 Switch to pnpm monorepo and added vitest
 
+
+ Foreign Function Interface (FFI) challenge
+https://gemini.google.com/u/1/app/cd03f13785ec7b98
+
 # Mon Apr 28
 
 Remove allocateUTF8 as its depreicated 
