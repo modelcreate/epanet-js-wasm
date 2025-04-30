@@ -1,3 +1,12 @@
+# BREAKING CHANGES
+  writeFile(path: string, data: string | Uint8Array) {
+    this.FS.writeFile(path, data);
+  }
+
+  writeFile now takes Uint8Array instead of ArrayBufferView which was the wrong too broad type
+
+
+
 # Wed Apr 30
 
 Switch to pnpm monorepo and added vitest

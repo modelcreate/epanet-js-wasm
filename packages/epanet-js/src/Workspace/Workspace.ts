@@ -48,7 +48,7 @@ export class Workspace {
     return errMessage;
   }
 
-  writeFile(path: string, data: string | ArrayBufferView) {
+  writeFile(path: string, data: string | Uint8Array) {
     this.FS.writeFile(path, data);
   }
 
