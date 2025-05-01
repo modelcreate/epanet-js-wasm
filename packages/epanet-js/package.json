@@ -22,5 +22,12 @@
     "vite": "^5.0.0",
     "vite-plugin-dts": "^3.0.0",
     "vitest": "^3.1.2"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": false,
+    "tabWidth": 2,
+    "trailingComma": "all",
+    "printWidth": 80
   }
 }
