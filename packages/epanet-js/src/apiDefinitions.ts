@@ -402,5 +402,181 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     outputArgDefs: [],
   },
 
+  // Reporting Functions
+  writeLine: {
+    wasmFunctionName: "_EN_writeline",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // line
+    outputArgDefs: [],
+  },
+
+  report: {
+    wasmFunctionName: "_EN_report",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
+  copyReport: {
+    wasmFunctionName: "_EN_copyreport",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // filename
+    outputArgDefs: [],
+  },
+
+  clearReport: {
+    wasmFunctionName: "_EN_clearreport",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
+  resetReport: {
+    wasmFunctionName: "_EN_resetreport",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
+  setReport: {
+    wasmFunctionName: "_EN_setreport",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // format
+    outputArgDefs: [],
+  },
+
+  setStatusReport: {
+    wasmFunctionName: "_EN_setstatusreport",
+    inputArgDefs: [{ typeHint: "enum" }], // level (StatusReport enum)
+    outputArgDefs: [],
+  },
+
+  getStatistic: {
+    wasmFunctionName: "_EN_getstatistic",
+    inputArgDefs: [{ typeHint: "enum" }], // type (AnalysisStatistic enum)
+    outputArgDefs: [{ name: "value", type: "double" }],
+  },
+
+  getResultIndex: {
+    wasmFunctionName: "_EN_getresultindex",
+    inputArgDefs: [
+      { typeHint: "enum" }, // type (ObjectType enum)
+      { typeHint: "number" }, // index
+    ],
+    outputArgDefs: [{ name: "resultIndex", type: "int" }],
+  },
+
+  // Time Pattern Functions
+  addPattern: {
+    wasmFunctionName: "_EN_addpattern",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // id
+    outputArgDefs: [],
+  },
+
+  deletePattern: {
+    wasmFunctionName: "_EN_deletepattern",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [],
+  },
+
+  getPatternIndex: {
+    wasmFunctionName: "_EN_getpatternindex",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // id
+    outputArgDefs: [{ name: "index", type: "int" }],
+  },
+
+  getPatternId: {
+    wasmFunctionName: "_EN_getpatternid",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "id", type: "char" }],
+  },
+
+  setPatternId: {
+    wasmFunctionName: "_EN_setpatternid",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "string", isStringPtr: true }, // id
+    ],
+    outputArgDefs: [],
+  },
+
+  getPatternLength: {
+    wasmFunctionName: "_EN_getpatternlen",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "length", type: "int" }],
+  },
+
+  getPatternValue: {
+    wasmFunctionName: "_EN_getpatternvalue",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "number" }, // period
+    ],
+    outputArgDefs: [{ name: "value", type: "double" }],
+  },
+
+  setPatternValue: {
+    wasmFunctionName: "_EN_setpatternvalue",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "number" }, // period
+      { typeHint: "number" }, // value
+    ],
+    outputArgDefs: [],
+  },
+
+  getAveragePatternValue: {
+    wasmFunctionName: "_EN_getaveragepatternvalue",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "value", type: "double" }],
+  },
+
+  setPattern: {
+    wasmFunctionName: "_EN_setpattern",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "double[]" }, // values array
+      { typeHint: "length" }, // count (automatically calculated from values array)
+    ],
+    outputArgDefs: [],
+  },
+
+  // Water Quality Analysis Functions
+  solveQ: {
+    wasmFunctionName: "_EN_solveQ",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
+  openQ: {
+    wasmFunctionName: "_EN_openQ",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
+  initQ: {
+    wasmFunctionName: "_EN_initQ",
+    inputArgDefs: [{ typeHint: "enum" }], // initFlag (InitHydOption enum)
+    outputArgDefs: [],
+  },
+
+  runQ: {
+    wasmFunctionName: "_EN_runQ",
+    inputArgDefs: [],
+    outputArgDefs: [{ name: "currentTime", type: "int" }],
+  },
+
+  nextQ: {
+    wasmFunctionName: "_EN_nextQ",
+    inputArgDefs: [],
+    outputArgDefs: [{ name: "tStep", type: "int" }],
+  },
+
+  stepQ: {
+    wasmFunctionName: "_EN_stepQ",
+    inputArgDefs: [],
+    outputArgDefs: [{ name: "tStep", type: "int" }],
+  },
+
+  closeQ: {
+    wasmFunctionName: "_EN_closeQ",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
   // ... Define ALL other EPANET functions ...
 };

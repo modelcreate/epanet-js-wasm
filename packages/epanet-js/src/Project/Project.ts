@@ -17,6 +17,9 @@ import {
   LinkType,
   LinkProperty,
   PumpType,
+  StatusReport,
+  AnalysisStatistic,
+  ObjectType,
 } from "../enum";
 import { apiDefinitions } from "../apiDefinitions";
 
@@ -125,6 +128,41 @@ class Project {
     reportFile: string,
     outputFile: string,
   ) => void;
+
+  // Reporting Functions
+  writeLine!: (line: string) => void;
+  report!: () => void;
+  copyReport!: (filename: string) => void;
+  clearReport!: () => void;
+  resetReport!: () => void;
+  setReport!: (format: string) => void;
+  setStatusReport!: (level: StatusReport) => void;
+  getStatistic!: (type: AnalysisStatistic) => number;
+  getResultIndex!: (
+    type: ObjectType.Node | ObjectType.Link,
+    index: number,
+  ) => number;
+
+  // Time Pattern Functions
+  addPattern!: (id: string) => void;
+  deletePattern!: (index: number) => void;
+  getPatternIndex!: (id: string) => number;
+  getPatternId!: (index: number) => string;
+  setPatternId!: (index: number, id: string) => void;
+  getPatternLength!: (index: number) => number;
+  getPatternValue!: (index: number, period: number) => number;
+  setPatternValue!: (index: number, period: number, value: number) => void;
+  getAveragePatternValue!: (index: number) => number;
+  setPattern!: (index: number, values: number[]) => void;
+
+  // Water Quality Analysis Functions
+  solveQ!: () => void;
+  openQ!: () => void;
+  initQ!: (initFlag: InitHydOption.Save | InitHydOption.NoSave) => void;
+  runQ!: () => number;
+  nextQ!: () => number;
+  stepQ!: () => number;
+  closeQ!: () => void;
 
   constructor(ws: Workspace) {
     this._ws = ws;

@@ -1,15 +1,16 @@
-import { Project, Workspace } from '../../src';
+import { Project, Workspace } from "../../src";
 
 const ws = new Workspace();
+await ws.loadModule();
 
-describe('Epanet Time Pattern Functions', () => {
-  describe('Impliment Methods', () => {
-    test('set pattern', () => {
+describe("Epanet Time Pattern Functions", () => {
+  describe("Impliment Methods", () => {
+    test("set pattern", () => {
       const model = new Project(ws);
-      model.init('report.rpt', 'out.bin', 0, 0);
+      model.init("report.rpt", "out.bin", 0, 0);
 
-      model.addPattern('testPattern');
-      const patIndex = model.getPatternIndex('testPattern');
+      model.addPattern("testPattern");
+      const patIndex = model.getPatternIndex("testPattern");
 
       model.setPattern(patIndex, [2, 2, 3, 4, 5]);
 

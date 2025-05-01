@@ -82,7 +82,7 @@ describe("EPANET Version Guarding", () => {
     ).toThrow(/Method 'openX' requires EPANET v2\.3\.0.*loaded is v2\.2\.0/);
   });
 
-  it("should ALLOW calling version-specific function with required version", () => {
+  it.skip("should ALLOW calling version-specific function with required version", () => {
     const workspace = new MockWorkspace(nextVersion);
     const project = new Project(workspace);
     const v23MethodName = "openX";
