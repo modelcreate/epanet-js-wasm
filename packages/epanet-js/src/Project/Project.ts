@@ -4,13 +4,13 @@ import {
   MemoryTypes,
   CountType,
   // Import other needed types/enums
-} from '../types'; // Adjust path if types are elsewhere
+} from "../types"; // Adjust path if types are elsewhere
 
-import type { EpanetModule } from '@model-create/epanet-engine';
+import type { EpanetModule } from "@model-create/epanet-engine";
 
-import { Workspace } from '../';
-import { NodeType, NodeProperty } from '../enum';
-import { apiDefinitions } from '../apiDefinitions';
+import { Workspace } from "../";
+import { NodeType, NodeProperty, ActionCodeType } from "../enum";
+import { apiDefinitions } from "../apiDefinitions";
 
 class Project {
   _ws: Workspace;
@@ -20,18 +20,47 @@ class Project {
   private readonly _absoluteMinVersion = 20200;
 
   // --- Declare Public API Methods with '!' ---
-  init!: (reportFile: string, binaryFile: string, unitsType: number, headlossType: number) => void;
+  init!: (
+    reportFile: string,
+    binaryFile: string,
+    unitsType: number,
+    headlossType: number,
+  ) => void;
+  open!: (inputFile: string, reportFile: string, binaryFile: string) => void;
+  close!: () => void;
   addNode!: (id: string, type: NodeType) => number;
   getCount!: (countType: CountType) => number;
   getNodeIndex!: (id: string) => number;
   getNodeValue!: (index: number, property: NodeProperty) => number;
   setNodeValue!: (index: number, property: NodeProperty, value: number) => void;
   getNodeType!: (nodeIndex: number) => NodeType;
-  setJunctionData!: (nodeIndex: number, elev: number, demand: number, patternId: string) => void; // Adjusted based on example C API
+  setJunctionData!: (
+    nodeIndex: number,
+    elev: number,
+    demand: number,
+    patternId: string,
+  ) => void; // Adjusted based on example C API
   // ... other baseline methods ...
 
   getSpecialNodePropertyV23!: (nodeIndex: number) => number;
   // ... other version-specific methods ...
+
+  // Node Functions
+  deleteNode!: (index: number, actionCode: ActionCodeType) => void;
+  getNodeId!: (index: number) => string;
+  setNodeId!: (index: number, newid: string) => void;
+  setTankData!: (
+    index: number,
+    elev: number,
+    initlvl: number,
+    minlvl: number,
+    maxlvl: number,
+    diam: number,
+    minvol: number,
+    volcurve: string,
+  ) => void;
+  getCoordinates!: (index: number) => { x: number; y: number };
+  setCoordinates!: (index: number, x: number, y: number) => void;
 
   constructor(ws: Workspace) {
     this._ws = ws;
@@ -47,15 +76,17 @@ class Project {
   }
 
   private _createProject(): number {
-    const funcName = '_EN_createproject'; // Ensure name matches export
+    const funcName = "_EN_createproject"; // Ensure name matches export
     const createProjectFunc = this._EN[funcName] as Function | undefined;
-    if (typeof createProjectFunc !== 'function') {
-      throw new Error(`EPANET function '${funcName}' not found in WASM module.`);
+    if (typeof createProjectFunc !== "function") {
+      throw new Error(
+        `EPANET function '${funcName}' not found in WASM module.`,
+      );
     }
 
     const ptrToProjectHandlePtr = this._EN._malloc(4);
     if (ptrToProjectHandlePtr === 0)
-      throw new Error('Memory allocation failed for project creation.');
+      throw new Error("Memory allocation failed for project creation.");
 
     let projectHandle = 0;
     try {
@@ -67,27 +98,29 @@ class Project {
           : `error code ${errorCode}`;
         throw new Error(`Failed to create EPANET project: ${errorMsg}`);
       }
-      projectHandle = this._EN.getValue(ptrToProjectHandlePtr, 'i32');
+      projectHandle = this._EN.getValue(ptrToProjectHandlePtr, "i32");
     } finally {
       this._EN._free(ptrToProjectHandlePtr); // Free the pointer *to* the handle pointer
     }
 
     if (projectHandle === 0) {
-      throw new Error('EPANET project creation succeeded but returned a null handle.');
+      throw new Error(
+        "EPANET project creation succeeded but returned a null handle.",
+      );
     }
     return projectHandle;
   }
 
   private _getAndVerifyEpanetVersion(): number {
     // !! IMPORTANT: Assume EN_getversion does NOT take projectHandle !!
-    const funcName = '_EN_getversion'; // Ensure name matches export
+    const funcName = "_EN_getversion"; // Ensure name matches export
     const getVersionFunc = this._EN[funcName] as Function | undefined;
 
-    if (typeof getVersionFunc !== 'function') {
+    if (typeof getVersionFunc !== "function") {
       throw new Error(
         `WASM module missing '${funcName}'. Min required v${this._formatVersionInt(
-          this._absoluteMinVersion
-        )}.`
+          this._absoluteMinVersion,
+        )}.`,
       );
     }
 
@@ -96,13 +129,15 @@ class Project {
 
     try {
       versionPtr = this._EN._malloc(4);
-      if (versionPtr === 0) throw new Error('Memory allocation failed for version check.');
+      if (versionPtr === 0)
+        throw new Error("Memory allocation failed for version check.");
 
       // Call *without* projectHandle
       const errorCode = getVersionFunc(versionPtr); // No apply needed if 'this' context isn't required
-      if (errorCode !== 0) throw new Error(`'${funcName}' failed with code ${errorCode}.`);
+      if (errorCode !== 0)
+        throw new Error(`'${funcName}' failed with code ${errorCode}.`);
 
-      actualVersion = this._EN.getValue(versionPtr, 'i32');
+      actualVersion = this._EN.getValue(versionPtr, "i32");
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new Error(`Failed to determine EPANET version: ${message}`);
@@ -119,15 +154,15 @@ class Project {
     if (actualVersion < this._absoluteMinVersion) {
       throw new Error(
         `EPANET Version Too Low: Loaded v${this._formatVersionInt(
-          actualVersion
-        )}, requires v${this._formatVersionInt(this._absoluteMinVersion)}.`
+          actualVersion,
+        )}, requires v${this._formatVersionInt(this._absoluteMinVersion)}.`,
       );
     }
     return actualVersion;
   }
 
   private _formatVersionInt(versionInt: number): string {
-    if (versionInt < 0) return 'Unknown';
+    if (versionInt < 0) return "Unknown";
     const major = Math.floor(versionInt / 10000);
     const minor = Math.floor((versionInt % 10000) / 100);
     const patch = versionInt % 100;
@@ -139,31 +174,40 @@ class Project {
     for (const methodName in apiDefinitions) {
       if (Object.prototype.hasOwnProperty.call(apiDefinitions, methodName)) {
         const definition = apiDefinitions[methodName];
-        (this as any)[methodName] = this._createApiMethod(definition, methodName);
+        (this as any)[methodName] = this._createApiMethod(
+          definition,
+          methodName,
+        );
       }
     }
   }
 
   // --- API Method Factory (Handles projectHandle and input strings) ---
-  private _createApiMethod(definition: ApiFunctionDefinition, methodName: string) {
+  private _createApiMethod(
+    definition: ApiFunctionDefinition,
+    methodName: string,
+  ) {
     const wasmFunctionName = definition.wasmFunctionName;
     const wasmFunction = this._EN[wasmFunctionName] as Function | undefined;
 
-    if (typeof wasmFunction !== 'function') {
+    if (typeof wasmFunction !== "function") {
       return () => {
         throw new Error(
-          `EPANET function '${wasmFunctionName}' (for method '${methodName}') not found.`
+          `EPANET function '${wasmFunctionName}' (for method '${methodName}') not found.`,
         );
       };
     }
 
     return (...userArgs: any[]) => {
       // --- Runtime Version Check ---
-      if (definition.minVersion && this._epanetVersionInt < definition.minVersion) {
+      if (
+        definition.minVersion &&
+        this._epanetVersionInt < definition.minVersion
+      ) {
         throw new Error(
           `Method '${methodName}' requires EPANET v${this._formatVersionInt(
-            definition.minVersion
-          )}, loaded is v${this._formatVersionInt(this._epanetVersionInt)}.`
+            definition.minVersion,
+          )}, loaded is v${this._formatVersionInt(this._epanetVersionInt)}.`,
         );
       }
       // --- End Runtime Version Check ---
@@ -177,18 +221,20 @@ class Project {
         const expectedArgs = definition.inputArgDefs?.length ?? 0;
         if (userArgs.length !== expectedArgs) {
           throw new Error(
-            `Method '${methodName}' expected ${expectedArgs} arguments, received ${userArgs.length}.`
+            `Method '${methodName}' expected ${expectedArgs} arguments, received ${userArgs.length}.`,
           );
         }
 
         // Process Input Arguments for WASM call (Handle Strings)
         userArgs.forEach((arg, index) => {
           const inputDef = definition.inputArgDefs?.[index];
-          if (inputDef?.isStringPtr && typeof arg === 'string') {
+          if (inputDef?.isStringPtr && typeof arg === "string") {
             const utf8Length = this._EN.lengthBytesUTF8(arg) + 1; // Null terminator
             const ptr = this._EN._malloc(utf8Length);
             if (ptr === 0)
-              throw new Error(`Malloc failed for input string arg ${index} in ${methodName}`);
+              throw new Error(
+                `Malloc failed for input string arg ${index} in ${methodName}`,
+              );
             this._EN.stringToUTF8(arg, ptr, utf8Length);
             inputStringPointers.push(ptr); // Remember to free this
             processedWasmArgs.push(ptr); // Add pointer to WASM args
@@ -213,7 +259,7 @@ class Project {
         let resultsArray: any[] = [];
         if (definition.outputArgTypes.length > 0) {
           resultsArray = outputPointers.map((ptr, index) =>
-            this._getValue(ptr, definition.outputArgTypes[index])
+            this._getValue(ptr, definition.outputArgTypes[index]),
           );
           outputPointers = []; // Pointers are invalid now
         }
@@ -261,44 +307,52 @@ class Project {
     return types.map((t) => {
       let memsize: number;
       switch (t) {
-        case 'char':
+        case "char":
           memsize = 32;
           break; // MAXID
-        case 'char-title':
+        case "char-title":
           memsize = 80;
           break; // TITLELEN
-        case 'int':
+        case "int":
           memsize = 4;
           break;
-        case 'long':
+        case "long":
           memsize = 8;
           break; // Assume 64-bit
-        case 'double':
+        case "double":
         default:
           memsize = 8;
           break;
       }
       const pointer = this._EN._malloc(memsize);
-      if (pointer === 0) throw new Error(`Failed to allocate ${memsize} bytes for type ${t}`);
+      if (pointer === 0)
+        throw new Error(`Failed to allocate ${memsize} bytes for type ${t}`);
       return pointer;
     });
   }
 
-  private _getValue<T extends EpanetMemoryType>(pointer: number, type: T): MemoryTypes[T] {
+  private _getValue<T extends EpanetMemoryType>(
+    pointer: number,
+    type: T,
+  ): MemoryTypes[T] {
     let value: any;
-    if (pointer === 0) throw new Error(`Attempted to read from null pointer for type ${type}`);
+    if (pointer === 0)
+      throw new Error(`Attempted to read from null pointer for type ${type}`);
 
     try {
-      if (type === 'char' || type === 'char-title') {
+      if (type === "char" || type === "char-title") {
         value = this._EN.UTF8ToString(pointer);
       } else {
-        const emsType = type === 'int' ? 'i32' : type === 'long' ? 'i64' : 'double';
+        const emsType =
+          type === "int" ? "i32" : type === "long" ? "i64" : "double";
         // Note: Handle potential BigInt for i64 if necessary
         value = this._EN.getValue(pointer, emsType);
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      throw new Error(`Failed to get value for type ${type} from pointer ${pointer}: ${message}`);
+      throw new Error(
+        `Failed to get value for type ${type} from pointer ${pointer}: ${message}`,
+      );
     } finally {
       // Free memory *after* reading or attempting to read
       // Add check to prevent freeing 0, though allocateMemory should prevent 0 pointers.
