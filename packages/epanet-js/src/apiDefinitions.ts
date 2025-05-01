@@ -1,10 +1,4 @@
-import {
-  ApiFunctionDefinition,
-  EpanetMemoryType,
-  CountType,
-  NodeProperty,
-  NodeType,
-} from "./types";
+import { ApiFunctionDefinition } from "./types";
 
 export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
   // EN_createproject is handled manually in constructor
@@ -86,12 +80,12 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
   },
 
   // --- Example Version-Gated Function ---
-  getSpecialNodePropertyV23: {
-    wasmFunctionName: "_EN_getspecialnodeprop_v23",
-    inputArgDefs: [{ typeHint: "number" }], // nodeIndex
-    outputArgDefs: [{ name: "value", type: "double" }],
-    minVersion: 20300, // Requires EPANET 2.3.0+
-  },
+  //getSpecialNodePropertyV23: {
+  //  wasmFunctionName: "_EN_getspecialnodeprop_v23",
+  //  inputArgDefs: [{ typeHint: "number" }], // nodeIndex
+  //  outputArgDefs: [{ name: "value", type: "double" }],
+  //  minVersion: 20300, // Requires EPANET 2.3.0+
+  //},
 
   // Node Functions
   deleteNode: {

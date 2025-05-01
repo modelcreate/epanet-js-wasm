@@ -1,3 +1,5 @@
+import type { EpanetModule } from "@model-create/epanet-engine";
+
 // Define memory types more strictly
 export type EpanetMemoryType =
   | "int"
@@ -34,7 +36,7 @@ export interface OutputArgDef {
 // Define the structure for API function metadata
 export interface ApiFunctionDefinition {
   /** The exact name exported by WASM (e.g., '_EN_getnodeindex') */
-  wasmFunctionName: keyof EpanetProject | string; // Allow string for flexibility
+  wasmFunctionName: keyof EpanetModule; // Allow string for flexibility
 
   /** Describes the INPUT arguments the JS function receives (excluding project handle) */
   inputArgDefs: InputArgDef[];
@@ -109,24 +111,3 @@ export interface Workspace {
   init?: () => Promise<void>; // Example async init
   getError: (errorCode: number) => string;
 }
-
-// Define EPANET constants/enums used in function arguments (examples)
-export enum NodeType {
-  Junction = 0,
-  Reservoir = 1,
-  Tank = 2,
-}
-
-export enum NodeProperty {
-  Elevation = 0,
-  BaseDemand = 1,
-  // ... other node properties
-}
-
-export enum CountType {
-  NodeCount = 0,
-  LinkCount = 1,
-  // ... other count types
-}
-
-// Add other enums like LinkProperty, TimeParameter, QualityType, etc.

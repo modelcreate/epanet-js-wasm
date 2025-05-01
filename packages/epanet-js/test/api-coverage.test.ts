@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll } from "vitest";
 import Project from "../src/Project/Project";
-import { EpanetProject, EmscriptenModule } from "../src/types";
+import { EpanetProject } from "../src/types";
 import { apiDefinitions } from "../src/apiDefinitions";
 
 import { Workspace } from "../src/Workspace/Workspace";
@@ -92,7 +92,12 @@ describe("EPANET WASM Function Coverage and Project API", () => {
     ).toHaveLength(0);
 
     // This assertion might be less reliable unless the mock is exhaustive
-    // expect(orphanedDefinitions, `Definitions for non-existent WASM functions: ${orphanedDefinitions.join(', ')}`).toHaveLength(0);
+    expect(
+      orphanedDefinitions,
+      `Definitions for non-existent WASM functions: ${orphanedDefinitions.join(
+        ", ",
+      )}`,
+    ).toHaveLength(0);
   });
 
   it("should have all public methods defined in apiDefinitions implemented on Project instance", () => {

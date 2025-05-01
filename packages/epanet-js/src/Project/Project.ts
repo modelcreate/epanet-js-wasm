@@ -2,14 +2,13 @@ import {
   ApiFunctionDefinition,
   EpanetMemoryType,
   MemoryTypes,
-  CountType,
   // Import other needed types/enums
 } from "../types"; // Adjust path if types are elsewhere
 
 import type { EpanetModule } from "@model-create/epanet-engine";
 
 import { Workspace } from "../";
-import { NodeType, NodeProperty, ActionCodeType } from "../enum";
+import { NodeType, NodeProperty, ActionCodeType, CountType } from "../enum";
 import { apiDefinitions } from "../apiDefinitions";
 
 class Project {

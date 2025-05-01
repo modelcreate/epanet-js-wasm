@@ -1,10 +1,6 @@
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import Project from "../src/Project/Project";
-import { EpanetProject, EmscriptenModule } from "../src/types";
 import { Workspace } from "../src/Workspace/Workspace";
-import EpanetEngine from "@model-create/epanet-engine";
-// apiDefinitions might be needed if you reference specific method names that require versions
-// import { apiDefinitions } from '../src/apiDefinitions';
 
 // Helper to create a Mock Workspace with a specific EPANET version
 class MockWorkspace extends Workspace {
@@ -49,7 +45,6 @@ describe("EPANET Version Guarding", () => {
   const baselineVersion = 20200; // e.g., 2.2.0
   const nextVersion = 20300; // e.g., 2.3.0
   const oldVersion = 20100; // e.g., 2.1.0
-  const absoluteMinVersion = 20200; // Must match _absoluteMinVersion in Project.ts
 
   it("should initialize successfully with required baseline version", () => {
     const workspace = new MockWorkspace(baselineVersion);
