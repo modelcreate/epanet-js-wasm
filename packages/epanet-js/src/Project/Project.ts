@@ -267,18 +267,42 @@ class Project {
 
       let outputPointers: number[] = [];
       let inputStringPointers: number[] = []; // Track allocated input string pointers
+      let arrayPointers: number[] = []; // Track allocated array pointers
       const processedWasmArgs: any[] = [this._projectHandle]; // Start with project handle
 
       try {
-        // Validate input argument count
-        const expectedArgs = definition.inputArgDefs?.length ?? 0;
+        // Validate input argument count (excluding length parameters)
+        const expectedArgs =
+          definition.inputArgDefs?.filter((def) => def.typeHint !== "length")
+            .length ?? 0;
         if (userArgs.length !== expectedArgs) {
           throw new Error(
             `Method '${methodName}' expected ${expectedArgs} arguments, received ${userArgs.length}.`,
           );
         }
 
-        // Process Input Arguments for WASM call (Handle Strings)
+        // Check array lengths if there are multiple arrays
+        const arrayArgs = definition.inputArgDefs
+          ?.map((def, index) =>
+            def.typeHint === "double[]" ? userArgs[index] : null,
+          )
+          .filter((arg) => arg !== null) as number[][];
+
+        if (arrayArgs.length > 1) {
+          const firstLength = arrayArgs[0].length;
+          const mismatchedArrays = arrayArgs.filter(
+            (arr) => arr.length !== firstLength,
+          );
+          if (mismatchedArrays.length > 0) {
+            throw new Error(
+              `All array arguments must have the same length. First array length: ${firstLength}, mismatched arrays: ${mismatchedArrays
+                .map((arr) => arr.length)
+                .join(", ")}`,
+            );
+          }
+        }
+
+        // Process Input Arguments for WASM call (Handle Strings and Arrays)
         userArgs.forEach((arg, index) => {
           const inputDef = definition.inputArgDefs?.[index];
           if (inputDef?.isStringPtr && typeof arg === "string") {
@@ -291,6 +315,32 @@ class Project {
             this._EN.stringToUTF8(arg, ptr, utf8Length);
             inputStringPointers.push(ptr); // Remember to free this
             processedWasmArgs.push(ptr); // Add pointer to WASM args
+          } else if (inputDef?.typeHint === "double[]") {
+            if (!Array.isArray(arg)) {
+              throw new Error(`Argument ${index} must be an array`);
+            }
+            const ptr = this._allocateMemoryForArray(arg);
+            arrayPointers.push(ptr);
+            processedWasmArgs.push(ptr);
+          } else if (inputDef?.typeHint === "length") {
+            // For length parameters, find the corresponding array and use its length
+            const arrayIndex = definition.inputArgDefs.findIndex(
+              (def) =>
+                def.typeHint === "double[]" &&
+                def.lengthFor === inputDef.lengthFor,
+            );
+            if (arrayIndex === -1) {
+              throw new Error(
+                `No array found for length parameter at index ${index}`,
+              );
+            }
+            const arrayArg = userArgs[arrayIndex];
+            if (!Array.isArray(arrayArg)) {
+              throw new Error(
+                `Length parameter at index ${index} requires a corresponding array`,
+              );
+            }
+            processedWasmArgs.push(arrayArg.length);
           } else {
             processedWasmArgs.push(arg); // Add other args directly
           }
@@ -351,16 +401,26 @@ class Project {
               /*ignore*/
             }
         });
-        throw error; // Re-throw
-      } finally {
-        // Cleanup input string pointers on success (output pointers freed by _getValue)
-        inputStringPointers.forEach((ptr) => {
-          if (ptr !== 0) {
+        arrayPointers.forEach((ptr) => {
+          if (ptr !== 0)
             try {
               this._EN._free(ptr);
             } catch (e) {
               /*ignore*/
             }
+        });
+        throw error; // Re-throw
+      } finally {
+        // Cleanup input string pointers on success (output pointers freed by _getValue)
+        inputStringPointers.forEach((ptr) => {
+          if (ptr !== 0) {
+            this._EN._free(ptr);
+          }
+        });
+        // Cleanup array pointers on success
+        arrayPointers.forEach((ptr) => {
+          if (ptr !== 0) {
+            this._EN._free(ptr);
           }
         });
       }
@@ -394,6 +454,16 @@ class Project {
         throw new Error(`Failed to allocate ${memsize} bytes for type ${t}`);
       return pointer;
     });
+  }
+
+  private _allocateMemoryForArray(arr: number[]): number {
+    const typedArray = new Float64Array(arr);
+    const nDataBytes = typedArray.length * typedArray.BYTES_PER_ELEMENT;
+    const dataPtr = this._EN._malloc(nDataBytes);
+
+    this._EN.HEAP8.set(new Uint8Array(typedArray.buffer), dataPtr);
+
+    return dataPtr;
   }
 
   private _getValue<T extends EpanetMemoryType>(

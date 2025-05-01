@@ -358,9 +358,9 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     wasmFunctionName: "_EN_setvertices",
     inputArgDefs: [
       { typeHint: "number" }, // index
-      { typeHint: "number" }, // x array pointer
-      { typeHint: "number" }, // y array pointer
-      { typeHint: "number" }, // count
+      { typeHint: "double[]" }, // x array
+      { typeHint: "double[]" }, // y array
+      { typeHint: "length", lengthFor: "x" }, // count (automatically calculated from x array)
     ],
     outputArgDefs: [],
   },

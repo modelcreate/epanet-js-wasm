@@ -20,9 +20,18 @@ export interface MemoryTypes {
 // Define input argument description
 export interface InputArgDef {
   // Type hint for potential validation or complex marshalling (optional)
-  typeHint?: "string" | "number" | "enum" | "boolean" | string;
+  typeHint?:
+    | "string"
+    | "number"
+    | "enum"
+    | "boolean"
+    | "double[]"
+    | "length"
+    | string;
   /** Set to true if this JS string argument needs conversion to a char* pointer */
   isStringPtr?: boolean;
+  /** For length parameters, specifies which array parameter this length corresponds to */
+  lengthFor?: string;
 }
 
 // Define output argument description
@@ -49,6 +58,13 @@ export interface ApiFunctionDefinition {
 
   /** Optional: Custom formatting for return values */
   postProcess?: (results: any[]) => any;
+
+  arrayInputs?: {
+    [key: string]: {
+      type: "double";
+      lengthParam: string;
+    };
+  };
 }
 
 // Define the Emscripten Module type (adjust based on your actual module structure)
@@ -60,7 +76,7 @@ export interface EmscriptenModule {
     type: "i8" | "i16" | "i32" | "i64" | "float" | "double" | "*",
   ) => number; // Add other types if needed
   UTF8ToString: (ptr: number) => string;
-  HEAP8: Int8Array; // Or other HEAP views if needed
+  HEAP8: Int8Array; // Changed from Int8Array to Uint8Array
   Epanet: any; // Constructor or namespace for the EPANET object/class
   [key: string]: any; // Add index signature for string keys
 }
