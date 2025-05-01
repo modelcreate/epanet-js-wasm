@@ -2,6 +2,7 @@
 
 - Generate Enums
 - Update epanet-engine to automatically add functions during compile
+  - missing some key functions
 - coverage
 
 # BREAKING CHANGES

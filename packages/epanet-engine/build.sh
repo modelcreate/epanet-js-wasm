@@ -3,21 +3,19 @@
 set -e
 
 echo "============================================="
-echo "Compiling wasm "
+echo "Compiling EPANET to WASM"
 echo "============================================="
 (
 
-    mkdir -p build
+    mkdir -p dist
 
-    emcc -O0  ./src/epanet_version.c -o index.js \
-    -I /opt/epanet/src/include \
-    /opt/epanet/build/lib/libepanet2.a \
+    # Read the EPANET functions from the JSON file and add memory management functions
+    EXPORTED_FUNCTIONS=$(cat epanet_exports.json )
+
+    emcc -O0 /opt/epanet/build/lib/libepanet2.a \
+    -o dist/index.js \
     -s WASM=1 \
-    -s "EXPORTED_FUNCTIONS=['_malloc', '_free', '_getversion','_EN_getversion', '_EN_open', '_EN_close', '_EN_solveH',\
-                            '_EN_createproject', '_EN_deleteproject', '_EN_init', '_EN_getcount', '_EN_addnode',\
-                            '_EN_setnodevalue', '_EN_getnodevalue', '_EN_getnodetype', '_EN_getnodeindex', '_EN_runproject', '_EN_geterror', '_EN_setjuncdata', \
-                            '_EN_setnodeid','_EN_settankdata','_EN_getcoord','_EN_setcoord',\
-                            '_EN_getnodeindex', '_EN_runproject', '_EN_geterror', '_EN_setjuncdata','_EN_deletenode','_EN_getnodeid']" \
+    -s "EXPORTED_FUNCTIONS=${EXPORTED_FUNCTIONS}" \
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s FORCE_FILESYSTEM=1 \
@@ -68,8 +66,8 @@ echo "============================================="
 
 
 
-    mkdir -p dist
-    mv index.js dist
+    #mkdir -p dist
+    #mv index.js dist
     #mv epanet_version.wasm dist
 
 )
