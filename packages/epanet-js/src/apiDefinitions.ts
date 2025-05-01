@@ -146,5 +146,66 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     outputArgDefs: [],
   },
 
+  // Hydraulic Analysis Functions
+  solveH: {
+    wasmFunctionName: "_EN_solveH",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
+  useHydFile: {
+    wasmFunctionName: "_EN_usehydfile",
+    inputArgDefs: [
+      { typeHint: "string", isStringPtr: true }, // filename
+    ],
+    outputArgDefs: [],
+  },
+
+  openH: {
+    wasmFunctionName: "_EN_openH",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
+  initH: {
+    wasmFunctionName: "_EN_initH",
+    inputArgDefs: [
+      { typeHint: "enum" }, // initFlag (InitHydOption enum)
+    ],
+    outputArgDefs: [],
+  },
+
+  runH: {
+    wasmFunctionName: "_EN_runH",
+    inputArgDefs: [],
+    outputArgDefs: [{ name: "currentTime", type: "int" }],
+  },
+
+  nextH: {
+    wasmFunctionName: "_EN_nextH",
+    inputArgDefs: [],
+    outputArgDefs: [{ name: "tStep", type: "int" }],
+  },
+
+  saveH: {
+    wasmFunctionName: "_EN_saveH",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
+  saveHydFile: {
+    wasmFunctionName: "_EN_savehydfile",
+    inputArgDefs: [
+      { typeHint: "string", isStringPtr: true }, // filename
+    ],
+    outputArgDefs: [],
+  },
+
+  closeH: {
+    wasmFunctionName: "_EN_closeH",
+    inputArgDefs: [],
+    outputArgDefs: [],
+  },
+
   // ... Define ALL other EPANET functions ...
 };

@@ -33,6 +33,16 @@ class MockWorkspace extends Workspace {
       _EN_getnodeindex: vi.fn(() => 0),
       _EN_getspecialnodeprop_v23: vi.fn((idx, ptr) => 0),
       _EN_createproject: vi.fn((idx, ptr) => 0),
+      // Hydraulic Analysis Functions
+      _EN_solveH: vi.fn(() => 0),
+      _EN_usehydfile: vi.fn((filename) => 0),
+      _EN_openH: vi.fn(() => 0),
+      _EN_initH: vi.fn((initFlag) => 0),
+      _EN_runH: vi.fn((ptr) => 0),
+      _EN_nextH: vi.fn((ptr) => 0),
+      _EN_saveH: vi.fn(() => 0),
+      _EN_savehydfile: vi.fn((filename) => 0),
+      _EN_closeH: vi.fn(() => 0),
     } as any;
     Object.defineProperty(this, "instance", { get: () => mockInstance });
   }

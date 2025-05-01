@@ -8,7 +8,13 @@ import {
 import type { EpanetModule } from "@model-create/epanet-engine";
 
 import { Workspace } from "../";
-import { NodeType, NodeProperty, ActionCodeType, CountType } from "../enum";
+import {
+  NodeType,
+  NodeProperty,
+  ActionCodeType,
+  CountType,
+  InitHydOption,
+} from "../enum";
 import { apiDefinitions } from "../apiDefinitions";
 
 class Project {
@@ -60,6 +66,17 @@ class Project {
   ) => void;
   getCoordinates!: (index: number) => { x: number; y: number };
   setCoordinates!: (index: number, x: number, y: number) => void;
+
+  // Hydraulic Analysis Functions
+  solveH!: () => void;
+  useHydFile!: (filename: string) => void;
+  openH!: () => void;
+  initH!: (initFlag: InitHydOption) => void;
+  runH!: () => number;
+  nextH!: () => number;
+  saveH!: () => void;
+  saveHydFile!: (filename: string) => void;
+  closeH!: () => void;
 
   constructor(ws: Workspace) {
     this._ws = ws;
