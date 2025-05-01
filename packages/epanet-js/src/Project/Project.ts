@@ -2,9 +2,9 @@ import {
     ApiFunctionDefinition,
     EpanetMemoryType,
     MemoryTypes,
-    CountType
+    CountType,
     // Import other needed types/enums
-} from '../types';
+} from '../types'; // Adjust path if types are elsewhere
 
 import type {EpanetModule} from '@model-create/epanet-engine';
 
@@ -12,104 +12,101 @@ import {  Workspace } from '../';
 import { NodeType, NodeProperty } from '../enum';
 import { apiDefinitions } from '../apiDefinitions';
 
-class Project /* Consider implementing specific interfaces for clarity */ {
+class Project {
     _ws: Workspace;
-    private _projectHandle: number;
-    _EN: EpanetModule;
-    private _epanetVersionInt: number = -1; // Stores detected version (e.g., 20200)
-    private readonly _absoluteMinVersion = 20200; // Absolute minimum supported (e.g., 2.2.0)
+    _EN: EpanetModule; // Use the combined type EpanetModule
+    private _projectHandle!: number; // Assert definite assignment
+    private _epanetVersionInt: number = -1;
+    private readonly _absoluteMinVersion = 20200;
 
-    // --- Declare Public API Methods ---
-    // List all methods defined in apiDefinitions keys for type safety / intellisense
-    // Baseline methods (examples)
+    // --- Declare Public API Methods with '!' ---
+    init!: (reportFile: string, binaryFile: string, unitsType: number, headlossType: number) => void;
+    addNode!: (id: string, type: NodeType) => number;
     getCount!: (countType: CountType) => number;
     getNodeIndex!: (id: string) => number;
     getNodeValue!: (index: number, property: NodeProperty) => number;
     setNodeValue!: (index: number, property: NodeProperty, value: number) => void;
+    getNodeType!: (nodeIndex: number) => NodeType;
+    setJunctionData!: (nodeIndex: number, elev: number, demand: number, patternId: string) => void; // Adjusted based on example C API
     // ... other baseline methods ...
 
-    // Version-specific methods (examples) - declare them normally
     getSpecialNodePropertyV23!: (nodeIndex: number) => number;
     // ... other version-specific methods ...
 
 
-    // Real implementation here:
-    addNode!: (id: string, type: NodeType) => number;
-    init!: (reportFile: string, binaryFile: string, hydOption: number, qualOption: number) => void;
-    setJunctionData!: (nodeIndex: number, demand: number, patternIndex: number, demandCategory: string) => void;
-    getNodeType!: (nodeIndex: number) => NodeType;
-
     constructor(ws: Workspace) {
         this._ws = ws;
-        this._EN = ws.instance;
+        // Assign the instance, assuming it includes EPANET functions and Emscripten helpers
+        this._EN = ws.instance as EpanetModule;
+
+        // Create the project FIRST, as version check might now need it (or not)
+        // But subsequent API calls definitely will. Assert assignment with !
         this._projectHandle = this._createProject();
 
-
-        // --- EPANET Version Check ---
-        // Detect and store the version, throw only if below absolute minimum
         this._epanetVersionInt = this._getAndVerifyEpanetVersion();
-        // --- End Version Check ---
-
-        // --- Build the main API methods ---
-        // This runs only if the version check passes the absolute minimum
         this._buildApiMethods();
-        // --- End API Build ---
     }
 
     private _createProject(): number {
-        const ptrToProjectHandlePtr = this._EN._malloc(4);
-
-        const errorCode = this._EN._EN_createproject(ptrToProjectHandlePtr);
-        if (errorCode !== 0) {
-            throw new Error(`Failed to create project: ${errorCode}`);
+        const funcName = '_EN_createproject'; // Ensure name matches export
+        const createProjectFunc = this._EN[funcName] as Function | undefined;
+        if (typeof createProjectFunc !== 'function') {
+             throw new Error(`EPANET function '${funcName}' not found in WASM module.`);
         }
-        const projectHandle = this._EN.getValue(ptrToProjectHandlePtr, 'i32');
-        this._EN._free(ptrToProjectHandlePtr);
 
+        const ptrToProjectHandlePtr = this._EN._malloc(4);
+        if (ptrToProjectHandlePtr === 0) throw new Error("Memory allocation failed for project creation.");
+
+        let projectHandle = 0;
+        try {
+            const errorCode = createProjectFunc(ptrToProjectHandlePtr); // Call directly
+            if (errorCode !== 0) {
+                // Use getError if available, otherwise just code
+                const errorMsg = this._ws.getError ? this._ws.getError(errorCode) : `error code ${errorCode}`;
+                throw new Error(`Failed to create EPANET project: ${errorMsg}`);
+            }
+            projectHandle = this._EN.getValue(ptrToProjectHandlePtr, 'i32');
+        } finally {
+            this._EN._free(ptrToProjectHandlePtr); // Free the pointer *to* the handle pointer
+        }
+
+        if (projectHandle === 0) {
+             throw new Error("EPANET project creation succeeded but returned a null handle.");
+        }
         return projectHandle;
-
     }
 
-    // --- Version Checking Logic ---
     private _getAndVerifyEpanetVersion(): number {
-        const getVersionFunc = this._EN['_EN_getversion'] as Function | undefined;
+        // !! IMPORTANT: Assume EN_getversion does NOT take projectHandle !!
+        const funcName = '_EN_getversion'; // Ensure name matches export
+        const getVersionFunc = this._EN[funcName] as Function | undefined;
+
         if (typeof getVersionFunc !== 'function') {
-            throw new Error(
-                `Loaded EPANET WASM module missing '_EN_getversion'. Minimum required version is ${this._formatVersionInt(this._absoluteMinVersion)} (likely pre-v2.2).`
-            );
+             throw new Error(`WASM module missing '${funcName}'. Min required v${this._formatVersionInt(this._absoluteMinVersion)}.`);
         }
 
         let versionPtr: number = 0;
         let actualVersion: number = -1;
 
         try {
-            versionPtr = this._EN._malloc(4); // sizeof(int)
-            if (versionPtr === 0) { throw new Error("Memory allocation failed for version check."); }
+            versionPtr = this._EN._malloc(4);
+            if (versionPtr === 0) throw new Error("Memory allocation failed for version check.");
 
-            const errorCode = getVersionFunc.apply(this._EN, [versionPtr]);
-             if (errorCode !== 0) {
-                  // Handle error if EN_getversion itself failed
-                  throw new Error(`EN_getversion failed with code ${errorCode}. Cannot verify EPANET version.`);
-             }
+            // Call *without* projectHandle
+            const errorCode = getVersionFunc(versionPtr); // No apply needed if 'this' context isn't required
+             if (errorCode !== 0) throw new Error(`'${funcName}' failed with code ${errorCode}.`);
 
             actualVersion = this._EN.getValue(versionPtr, 'i32');
-
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
             throw new Error(`Failed to determine EPANET version: ${message}`);
         } finally {
-            if (versionPtr !== 0) {
-                try { this._EN._free(versionPtr); } catch(e) {/* ignore cleanup error */}
-            }
+            if (versionPtr !== 0) { try { this._EN._free(versionPtr); } catch(e) {/* ignore */} }
         }
 
         if (actualVersion < this._absoluteMinVersion) {
-             throw new Error(
-                 `EPANET Version Too Low: Loaded WASM reports v${this._formatVersionInt(actualVersion)}, library requires at least v${this._formatVersionInt(this._absoluteMinVersion)}.`
-             );
+             throw new Error(`EPANET Version Too Low: Loaded v${this._formatVersionInt(actualVersion)}, requires v${this._formatVersionInt(this._absoluteMinVersion)}.`);
         }
-
-        //console.log(`Detected EPANET Version: ${this._formatVersionInt(actualVersion)}`);
         return actualVersion;
     }
 
@@ -126,71 +123,89 @@ class Project /* Consider implementing specific interfaces for clarity */ {
         for (const methodName in apiDefinitions) {
             if (Object.prototype.hasOwnProperty.call(apiDefinitions, methodName)) {
                 const definition = apiDefinitions[methodName];
-                // Assign the generated function (which includes version checks)
                 (this as any)[methodName] = this._createApiMethod(definition, methodName);
             }
         }
     }
 
-    // --- API Method Factory ---
+    // --- API Method Factory (Handles projectHandle and input strings) ---
     private _createApiMethod(definition: ApiFunctionDefinition, methodName: string) {
-        const wasmFunction = this._EN[definition.wasmFunctionName] as Function | undefined;
+        const wasmFunctionName = definition.wasmFunctionName;
+        const wasmFunction = this._EN[wasmFunctionName] as Function | undefined;
 
-        // Check if the underlying function exists in this specific WASM build
         if (typeof wasmFunction !== 'function') {
-            return () => { // Return a function that throws informative error
-                throw new Error(`EPANET function '${definition.wasmFunctionName}' (for method '${methodName}') not found in the loaded WASM module. Version might be too old or definition mismatch.`);
-            };
+             return () => { throw new Error(`EPANET function '${wasmFunctionName}' (for method '${methodName}') not found.`); };
         }
 
-        // Return the actual wrapper function
-        return (...args: any[]) => {
+        return (...userArgs: any[]) => {
             // --- Runtime Version Check ---
             if (definition.minVersion && this._epanetVersionInt < definition.minVersion) {
-                throw new Error(
-                    `Method '${methodName}' requires EPANET v${this._formatVersionInt(definition.minVersion)} or later, but loaded version is v${this._formatVersionInt(this._epanetVersionInt)}.`
-                );
+                throw new Error(`Method '${methodName}' requires EPANET v${this._formatVersionInt(definition.minVersion)}, loaded is v${this._formatVersionInt(this._epanetVersionInt)}.`);
             }
             // --- End Runtime Version Check ---
 
             let outputPointers: number[] = [];
+            let inputStringPointers: number[] = []; // Track allocated input string pointers
+            const processedWasmArgs: any[] = [this._projectHandle]; // Start with project handle
+
             try {
+                // Validate input argument count
+                const expectedArgs = definition.inputArgDefs?.length ?? 0;
+                if (userArgs.length !== expectedArgs) {
+                     throw new Error(`Method '${methodName}' expected ${expectedArgs} arguments, received ${userArgs.length}.`);
+                }
+
+                // Process Input Arguments for WASM call (Handle Strings)
+                userArgs.forEach((arg, index) => {
+                    const inputDef = definition.inputArgDefs?.[index];
+                    if (inputDef?.isStringPtr && typeof arg === 'string') {
+                        const utf8Length = this._EN.lengthBytesUTF8(arg) + 1; // Null terminator
+                        const ptr = this._EN._malloc(utf8Length);
+                        if (ptr === 0) throw new Error(`Malloc failed for input string arg ${index} in ${methodName}`);
+                        this._EN.stringToUTF8(arg, ptr, utf8Length);
+                        inputStringPointers.push(ptr); // Remember to free this
+                        processedWasmArgs.push(ptr);   // Add pointer to WASM args
+                    } else {
+                        processedWasmArgs.push(arg); // Add other args directly
+                    }
+                });
+
                 // Allocate memory for output pointers
                 if (definition.outputArgTypes.length > 0) {
                     outputPointers = this._allocateMemory(definition.outputArgTypes);
+                    processedWasmArgs.push(...outputPointers); // Add output pointers to WASM args
                 }
 
-                // Call the WASM function
-                const errorCode = wasmFunction.apply(this._EN, [this._projectHandle, ...args, ...outputPointers]);
+                // Call the WASM function: apply(thisContext, [arg1, arg2, ...])
+                const errorCode = wasmFunction.apply(this._EN, processedWasmArgs);
 
-                // Check EPANET error code
+                // Check EPANET error code AFTER the call
                 this._checkError(errorCode); // Throws on critical error
 
-                // Retrieve values (if any) - _getValue frees the pointers
-                if (outputPointers.length > 0) {
-                    const results = outputPointers.map((ptr, index) =>
+                // Retrieve output values (if any) - _getValue frees the output pointers
+                let resultsArray: any[] = [];
+                if (definition.outputArgTypes.length > 0) {
+                    resultsArray = outputPointers.map((ptr, index) =>
                         this._getValue(ptr, definition.outputArgTypes[index])
                     );
                     outputPointers = []; // Pointers are invalid now
-
-                    // Post-process results if needed
-                    if (definition.postProcess) {
-                        return definition.postProcess(results);
-                    }
-                    // Return single value or array
-                    return results.length === 1 ? results[0] : results;
-                } else {
-                    return undefined; // No output pointers
                 }
+
+                // Format & Return results
+                if (definition.outputArgTypes.length === 0) return undefined;
+                if (definition.postProcess) return definition.postProcess(resultsArray);
+                return resultsArray.length === 1 ? resultsArray[0] : resultsArray;
+
             } catch (error) {
-                 // Cleanup any pointers allocated *before* an error occurred mid-process
-                 if (outputPointers.length > 0) {
-                     console.warn(`Cleaning up ${outputPointers.length} pointer(s) after error in ${methodName}.`);
-                     outputPointers.forEach(ptr => {
-                         if (ptr !== 0) { try { this._EN._free(ptr); } catch(e) {/* ignore */} }
-                     });
-                 }
-                 throw error; // Re-throw the original error
+                 // Cleanup ALL allocated pointers on error
+                 outputPointers.forEach(ptr => { if (ptr !== 0) try { this._EN._free(ptr); } catch(e) {/*ignore*/} });
+                 inputStringPointers.forEach(ptr => { if (ptr !== 0) try { this._EN._free(ptr); } catch(e) {/*ignore*/} });
+                 throw error; // Re-throw
+            } finally {
+                 // Cleanup input string pointers on success (output pointers freed by _getValue)
+                 inputStringPointers.forEach(ptr => {
+                     if (ptr !== 0) { try { this._EN._free(ptr); } catch(e) {/*ignore*/} }
+                 });
             }
         };
     }
@@ -249,6 +264,7 @@ class Project /* Consider implementing specific interfaces for clarity */ {
     }
 
     // Add _allocateMemoryForArray if needed
+
 }
 
 export default Project;

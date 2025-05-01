@@ -10,18 +10,30 @@ export interface MemoryTypes {
   'char-title': string;
 }
 
+// Define input argument description
+export interface InputArgDef {
+  // Type hint for potential validation or complex marshalling (optional)
+  typeHint?: 'string' | 'number' | 'enum' | 'boolean' | string;
+  /** Set to true if this JS string argument needs conversion to a char* pointer */
+  isStringPtr?: boolean;
+}
+
+
 // Define the structure for API function metadata
 export interface ApiFunctionDefinition {
-  /** The name of the function exposed on the _EN (WASM) object */
-  wasmFunctionName: keyof EpanetProject; // Use keyof EpanetProject if available
+  /** The exact name exported by WASM (e.g., '_EN_getnodeindex') */
+  wasmFunctionName: keyof EpanetProject | string; // Allow string for flexibility
 
-  /** List of types for arguments that EPANET expects pointers for (output values) */
+  /** Describes the INPUT arguments the JS function receives (excluding project handle) */
+  inputArgDefs: InputArgDef[];
+
+  /** List of types for OUTPUT arguments (pointers needed) */
   outputArgTypes: EpanetMemoryType[];
 
-  /** Optional: Minimum EPANET version (integer format, e.g., 20300) required */
+  /** Optional: Minimum EPANET version required */
   minVersion?: number;
 
-  /** Optional function to process the raw results array */
+  /** Optional: Custom formatting for return values */
   postProcess?: (results: any[]) => any;
 }
 
@@ -38,17 +50,25 @@ export interface EmscriptenModule {
 
 // Define the EPANET project instance type (adjust based on actual WASM exports)
 export interface EpanetProject {
-  // List function names explicitly if possible for better type checking
-  // Example:
-  EN_getversion: (versionPtr: number) => number;
-  EN_getnodeindex: (id: string, indexPtr: number) => number;
-  EN_getnodevalue: (index: number, property: number, valuePtr: number) => number;
-  EN_newfunction_v23?: (arg1: number, resultPtr: number) => number; // Example v2.3 function
+  _EN_createproject: (ptrToProjectHandlePtr: number) => number;
+  _EN_getversion: (versionPtr: number) => number; // Note: No project handle
+  _EN_init: (proj: number, rptFilePtr: number, binFilePtr: number, unitsType: number, headlossType: number) => number;
+  _EN_addnode: (proj: number, idPtr: number, nodeType: number, indexPtr: number) => number;
+  _EN_getnodeindex: (proj: number, idPtr: number, indexPtr: number) => number;
+  _EN_getnodevalue: (proj: number, index: number, property: number, valuePtr: number) => number;
+  // ... other function signatures ...
 
-  // Use an index signature as a fallback if explicit listing is too cumbersome
-  [key: string]: Function | any;
+  // Emscripten helpers likely still needed on the main module object
+  _malloc: (size: number) => number;
+  _free: (ptr: number) => void;
+  getValue: (ptr: number, type: 'i8' | 'i16' | 'i32' | 'i64' | 'float' | 'double' | '*') => number;
+  UTF8ToString: (ptr: number) => string;
+  lengthBytesUTF8: (str: string) => number;
+  stringToUTF8: (str: string, outPtr: number, maxBytesToWrite: number) => void;
+  // ... other helpers ...
+
+  [key: string]: Function | any; // Index signature fallback
 }
-
 // Define your Workspace type (replace with your actual implementation details)
 export interface Workspace {
   _instance: EmscriptenModule;

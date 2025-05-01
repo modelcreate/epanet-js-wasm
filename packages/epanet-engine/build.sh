@@ -15,7 +15,8 @@ echo "============================================="
     -s WASM=1 \
     -s "EXPORTED_FUNCTIONS=['_malloc', '_free', '_getversion','_EN_getversion', '_EN_open', '_EN_close', '_EN_solveH',\
                             '_EN_createproject', '_EN_deleteproject', '_EN_init', '_EN_getcount', '_EN_addnode',\
-                            '_EN_getnodeindex', '_EN_runproject', '_EN_geterror']" \
+                            '_EN_setnodevalue', '_EN_getnodevalue', '_EN_getnodetype', '_EN_getnodeindex', '_EN_runproject', '_EN_geterror', '_EN_setjuncdata', \
+                            '_EN_getnodeindex', '_EN_runproject', '_EN_geterror', '_EN_setjuncdata']" \
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s FORCE_FILESYSTEM=1 \
