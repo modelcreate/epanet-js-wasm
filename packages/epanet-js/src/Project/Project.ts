@@ -116,6 +116,16 @@ class Project {
   getVertex!: (index: number, vertex: number) => { x: number; y: number };
   setVertices!: (index: number, x: number[], y: number[]) => void;
 
+  // Project Functions
+  getTitle!: () => { line1: string; line2: string; line3: string };
+  setTitle!: (line1: string, line2: string, line3: string) => void;
+  saveInpFile!: (filename: string) => void;
+  runProject!: (
+    inputFile: string,
+    reportFile: string,
+    outputFile: string,
+  ) => void;
+
   constructor(ws: Workspace) {
     this._ws = ws;
     // Assign the instance, assuming it includes EPANET functions and Emscripten helpers

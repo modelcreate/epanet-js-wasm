@@ -365,5 +365,42 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     outputArgDefs: [],
   },
 
+  // Project Functions
+  getTitle: {
+    wasmFunctionName: "_EN_gettitle",
+    inputArgDefs: [],
+    outputArgDefs: [
+      { name: "line1", type: "char-title" },
+      { name: "line2", type: "char-title" },
+      { name: "line3", type: "char-title" },
+    ],
+  },
+
+  setTitle: {
+    wasmFunctionName: "_EN_settitle",
+    inputArgDefs: [
+      { typeHint: "string", isStringPtr: true }, // line1
+      { typeHint: "string", isStringPtr: true }, // line2
+      { typeHint: "string", isStringPtr: true }, // line3
+    ],
+    outputArgDefs: [],
+  },
+
+  saveInpFile: {
+    wasmFunctionName: "_EN_saveinpfile",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // filename
+    outputArgDefs: [],
+  },
+
+  runProject: {
+    wasmFunctionName: "_EN_runproject",
+    inputArgDefs: [
+      { typeHint: "string", isStringPtr: true }, // inputFile
+      { typeHint: "string", isStringPtr: true }, // reportFile
+      { typeHint: "string", isStringPtr: true }, // outputFile
+    ],
+    outputArgDefs: [],
+  },
+
   // ... Define ALL other EPANET functions ...
 };
