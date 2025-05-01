@@ -14,6 +14,9 @@ import {
   ActionCodeType,
   CountType,
   InitHydOption,
+  LinkType,
+  LinkProperty,
+  PumpType,
 } from "../enum";
 import { apiDefinitions } from "../apiDefinitions";
 
@@ -77,6 +80,41 @@ class Project {
   saveH!: () => void;
   saveHydFile!: (filename: string) => void;
   closeH!: () => void;
+
+  // Network Link Functions
+  addLink!: (
+    id: string,
+    linkType: LinkType,
+    fromNode: string,
+    toNode: string,
+  ) => number;
+  deleteLink!: (index: number, actionCode: ActionCodeType) => void;
+  getLinkIndex!: (id: string) => number;
+  getLinkId!: (index: number) => string;
+  setLinkId!: (index: number, newid: string) => void;
+  getLinkType!: (index: number) => LinkType;
+  setLinkType!: (
+    index: number,
+    linkType: LinkType,
+    actionCode: ActionCodeType,
+  ) => number;
+  getLinkNodes!: (index: number) => { node1: number; node2: number };
+  setLinkNodes!: (index: number, node1: number, node2: number) => void;
+  getLinkValue!: (index: number, property: LinkProperty) => number;
+  setLinkValue!: (index: number, property: LinkProperty, value: number) => void;
+  setPipeData!: (
+    index: number,
+    length: number,
+    diam: number,
+    rough: number,
+    mloss: number,
+  ) => void;
+  getPumpType!: (index: number) => PumpType;
+  getHeadCurveIndex!: (linkIndex: number) => number;
+  setHeadCurveIndex!: (linkIndex: number, curveIndex: number) => void;
+  getVertexCount!: (index: number) => number;
+  getVertex!: (index: number, vertex: number) => { x: number; y: number };
+  setVertices!: (index: number, x: number[], y: number[]) => void;
 
   constructor(ws: Workspace) {
     this._ws = ws;

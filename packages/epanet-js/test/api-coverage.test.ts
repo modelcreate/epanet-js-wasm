@@ -43,6 +43,25 @@ class MockWorkspace extends Workspace {
       _EN_saveH: vi.fn(() => 0),
       _EN_savehydfile: vi.fn((filename) => 0),
       _EN_closeH: vi.fn(() => 0),
+      // Network Link Functions
+      _EN_addlink: vi.fn((id, linkType, fromNode, toNode, ptr) => 0),
+      _EN_deletelink: vi.fn((index, actionCode) => 0),
+      _EN_getlinkindex: vi.fn((id, ptr) => 0),
+      _EN_getlinkid: vi.fn((index, ptr) => 0),
+      _EN_setlinkid: vi.fn((index, newid) => 0),
+      _EN_getlinktype: vi.fn((index, ptr) => 0),
+      _EN_setlinktype: vi.fn((index, linkType, actionCode) => 0),
+      _EN_getlinknodes: vi.fn((index, ptr1, ptr2) => 0),
+      _EN_setlinknodes: vi.fn((index, node1, node2) => 0),
+      _EN_getlinkvalue: vi.fn((index, property, ptr) => 0),
+      _EN_setlinkvalue: vi.fn((index, property, value) => 0),
+      _EN_setpipedata: vi.fn((index, length, diam, rough, mloss) => 0),
+      _EN_getpumptype: vi.fn((index, ptr) => 0),
+      _EN_getheadcurveindex: vi.fn((linkIndex, ptr) => 0),
+      _EN_setheadcurveindex: vi.fn((linkIndex, curveIndex) => 0),
+      _EN_getvertexcount: vi.fn((index, ptr) => 0),
+      _EN_getvertex: vi.fn((index, vertex, ptr1, ptr2) => 0),
+      _EN_setvertices: vi.fn((index, xPtr, yPtr, count) => 0),
     } as any;
     Object.defineProperty(this, "instance", { get: () => mockInstance });
   }

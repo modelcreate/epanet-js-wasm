@@ -207,5 +207,163 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     outputArgDefs: [],
   },
 
+  // Network Link Functions
+  addLink: {
+    wasmFunctionName: "_EN_addlink",
+    inputArgDefs: [
+      { typeHint: "string", isStringPtr: true }, // id
+      { typeHint: "enum" }, // linkType (LinkType enum)
+      { typeHint: "string", isStringPtr: true }, // fromNode
+      { typeHint: "string", isStringPtr: true }, // toNode
+    ],
+    outputArgDefs: [{ name: "index", type: "int" }],
+  },
+
+  deleteLink: {
+    wasmFunctionName: "_EN_deletelink",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "enum" }, // actionCode (ActionCodeType enum)
+    ],
+    outputArgDefs: [],
+  },
+
+  getLinkIndex: {
+    wasmFunctionName: "_EN_getlinkindex",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // id
+    outputArgDefs: [{ name: "index", type: "int" }],
+  },
+
+  getLinkId: {
+    wasmFunctionName: "_EN_getlinkid",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "id", type: "char" }],
+  },
+
+  setLinkId: {
+    wasmFunctionName: "_EN_setlinkid",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "string", isStringPtr: true }, // newid
+    ],
+    outputArgDefs: [],
+  },
+
+  getLinkType: {
+    wasmFunctionName: "_EN_getlinktype",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "type", type: "int" }],
+  },
+
+  setLinkType: {
+    wasmFunctionName: "_EN_setlinktype",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "enum" }, // linkType (LinkType enum)
+      { typeHint: "enum" }, // actionCode (ActionCodeType enum)
+    ],
+    outputArgDefs: [{ name: "newIndex", type: "int" }],
+  },
+
+  getLinkNodes: {
+    wasmFunctionName: "_EN_getlinknodes",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [
+      { name: "node1", type: "int" },
+      { name: "node2", type: "int" },
+    ],
+  },
+
+  setLinkNodes: {
+    wasmFunctionName: "_EN_setlinknodes",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "number" }, // node1
+      { typeHint: "number" }, // node2
+    ],
+    outputArgDefs: [],
+  },
+
+  getLinkValue: {
+    wasmFunctionName: "_EN_getlinkvalue",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "enum" }, // property (LinkProperty enum)
+    ],
+    outputArgDefs: [{ name: "value", type: "double" }],
+  },
+
+  setLinkValue: {
+    wasmFunctionName: "_EN_setlinkvalue",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "enum" }, // property (LinkProperty enum)
+      { typeHint: "number" }, // value
+    ],
+    outputArgDefs: [],
+  },
+
+  setPipeData: {
+    wasmFunctionName: "_EN_setpipedata",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "number" }, // length
+      { typeHint: "number" }, // diam
+      { typeHint: "number" }, // rough
+      { typeHint: "number" }, // mloss
+    ],
+    outputArgDefs: [],
+  },
+
+  getPumpType: {
+    wasmFunctionName: "_EN_getpumptype",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "type", type: "int" }],
+  },
+
+  getHeadCurveIndex: {
+    wasmFunctionName: "_EN_getheadcurveindex",
+    inputArgDefs: [{ typeHint: "number" }], // linkIndex
+    outputArgDefs: [{ name: "curveIndex", type: "int" }],
+  },
+
+  setHeadCurveIndex: {
+    wasmFunctionName: "_EN_setheadcurveindex",
+    inputArgDefs: [
+      { typeHint: "number" }, // linkIndex
+      { typeHint: "number" }, // curveIndex
+    ],
+    outputArgDefs: [],
+  },
+
+  getVertexCount: {
+    wasmFunctionName: "_EN_getvertexcount",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "count", type: "int" }],
+  },
+
+  getVertex: {
+    wasmFunctionName: "_EN_getvertex",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "number" }, // vertex
+    ],
+    outputArgDefs: [
+      { name: "x", type: "double" },
+      { name: "y", type: "double" },
+    ],
+  },
+
+  setVertices: {
+    wasmFunctionName: "_EN_setvertices",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "number" }, // x array pointer
+      { typeHint: "number" }, // y array pointer
+      { typeHint: "number" }, // count
+    ],
+    outputArgDefs: [],
+  },
+
   // ... Define ALL other EPANET functions ...
 };
