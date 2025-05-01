@@ -503,6 +503,8 @@ export interface ${MODULE_INTERFACE_NAME} {
     stringToUTF8(str: string, outPtr: ${POINTER_TYPE_NAME}, maxBytesToWrite: number): void;
     stringToNewUTF8(str: string): ${POINTER_TYPE_NAME};
     UTF8ToString(ptr: ${POINTER_TYPE_NAME}): string;
+    HEAP8: Int8Array;
+    HEAPF64: Float64Array;
     // Add any other EXPORTED_RUNTIME_METHODS here
 
     // --- Exported EPANET Functions ---
