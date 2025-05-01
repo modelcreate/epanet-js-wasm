@@ -11,97 +11,85 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
   // EN_getversion is handled manually in version check
 
   init: {
-    wasmFunctionName: "_EN_init", // Assuming leading underscore
+    wasmFunctionName: "_EN_init",
     inputArgDefs: [
-      // JS args: reportFile, binaryFile, hydOption, qualOption
       { typeHint: "string", isStringPtr: true }, // reportFile
       { typeHint: "string", isStringPtr: true }, // binaryFile
       { typeHint: "number" }, // hydOption (unitsType in C API)
       { typeHint: "number" }, // qualOption (headlossType in C API)
     ],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
   open: {
-    wasmFunctionName: "_EN_open", // Assuming leading underscore
+    wasmFunctionName: "_EN_open",
     inputArgDefs: [
-      // JS args: reportFile, binaryFile, hydOption, qualOption
       { typeHint: "string", isStringPtr: true }, // inputFile
       { typeHint: "string", isStringPtr: true }, // reportFile
       { typeHint: "string", isStringPtr: true }, // binaryFile
     ],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
   close: {
     wasmFunctionName: "_EN_close",
     inputArgDefs: [],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
   addNode: {
     wasmFunctionName: "_EN_addnode",
     inputArgDefs: [
-      // JS args: id, type
       { typeHint: "string", isStringPtr: true }, // id
       { typeHint: "enum", isStringPtr: false }, // type (NodeType enum)
     ],
-    outputArgTypes: ["int"], // Index pointer
+    outputArgDefs: [{ name: "index", type: "int" }],
   },
   getCount: {
     wasmFunctionName: "_EN_getcount",
     inputArgDefs: [{ typeHint: "enum" }], // countType (CountType enum)
-    outputArgTypes: ["int"],
+    outputArgDefs: [{ name: "count", type: "int" }],
   },
   getNodeIndex: {
     wasmFunctionName: "_EN_getnodeindex",
     inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // id string
-    outputArgTypes: ["int"], // index pointer
+    outputArgDefs: [{ name: "index", type: "int" }],
   },
   getNodeValue: {
     wasmFunctionName: "_EN_getnodevalue",
     inputArgDefs: [
-      // index, property
       { typeHint: "number" },
       { typeHint: "enum" }, // NodeProperty enum
     ],
-    outputArgTypes: ["double"], // value pointer
+    outputArgDefs: [{ name: "value", type: "double" }],
   },
   setNodeValue: {
     wasmFunctionName: "_EN_setnodevalue",
     inputArgDefs: [
-      // index, property, value
       { typeHint: "number" },
       { typeHint: "enum" }, // NodeProperty enum
       { typeHint: "number" }, // value
     ],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
   getNodeType: {
     wasmFunctionName: "_EN_getnodetype",
     inputArgDefs: [{ typeHint: "number" }], // index
-    outputArgTypes: ["int"], // type pointer
+    outputArgDefs: [{ name: "type", type: "int" }],
   },
   setJunctionData: {
-    // Example provided by user, needs arg clarification
-    // C API: int EN_setjuncdata(int index, double elev, double dmnd, char *dmndpat);
-    // Let's assume JS API matches user declaration: (nodeIndex, demand, patternIndex, demandCategory)
-    // This needs adjustment based on the *actual* C API requirements vs the desired JS API.
-    // Assuming JS takes pattern *ID* (string) not index, and maybe demandCategory isn't used?
-    // Revisit this based on C API vs JS API design. Example assuming elev=0, patternId is string:
     wasmFunctionName: "_EN_setjuncdata",
     inputArgDefs: [
-      // JS args: nodeIndex, elev, demand, patternId
       { typeHint: "number" }, // nodeIndex
-      { typeHint: "number" }, // elev (assuming fixed or added to JS API)
+      { typeHint: "number" }, // elev
       { typeHint: "number" }, // demand
       { typeHint: "string", isStringPtr: true }, // patternId string
     ],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
 
   // --- Example Version-Gated Function ---
   getSpecialNodePropertyV23: {
-    wasmFunctionName: "_EN_getspecialnodeprop_v23", // Replace with actual name
+    wasmFunctionName: "_EN_getspecialnodeprop_v23",
     inputArgDefs: [{ typeHint: "number" }], // nodeIndex
-    outputArgTypes: ["double"],
+    outputArgDefs: [{ name: "value", type: "double" }],
     minVersion: 20300, // Requires EPANET 2.3.0+
   },
 
@@ -112,13 +100,13 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
       { typeHint: "number" }, // index
       { typeHint: "enum" }, // actionCode (ActionCodeType enum)
     ],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
 
   getNodeId: {
     wasmFunctionName: "_EN_getnodeid",
     inputArgDefs: [{ typeHint: "number" }], // index
-    outputArgTypes: ["char"],
+    outputArgDefs: [{ name: "id", type: "char" }],
   },
 
   setNodeId: {
@@ -127,7 +115,7 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
       { typeHint: "number" }, // index
       { typeHint: "string", isStringPtr: true }, // newid
     ],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
 
   setTankData: {
@@ -142,13 +130,16 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
       { typeHint: "number" }, // minvol
       { typeHint: "string", isStringPtr: true }, // volcurve
     ],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
 
   getCoordinates: {
     wasmFunctionName: "_EN_getcoord",
     inputArgDefs: [{ typeHint: "number" }], // index
-    outputArgTypes: ["double", "double"],
+    outputArgDefs: [
+      { name: "x", type: "double" },
+      { name: "y", type: "double" },
+    ],
   },
 
   setCoordinates: {
@@ -158,7 +149,7 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
       { typeHint: "number" }, // x
       { typeHint: "number" }, // y
     ],
-    outputArgTypes: [],
+    outputArgDefs: [],
   },
 
   // ... Define ALL other EPANET functions ...

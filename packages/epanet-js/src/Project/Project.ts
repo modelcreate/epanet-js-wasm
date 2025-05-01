@@ -244,8 +244,10 @@ class Project {
         });
 
         // Allocate memory for output pointers
-        if (definition.outputArgTypes.length > 0) {
-          outputPointers = this._allocateMemory(definition.outputArgTypes);
+        if (definition.outputArgDefs.length > 0) {
+          outputPointers = this._allocateMemory(
+            definition.outputArgDefs.map((def) => def.type),
+          );
           processedWasmArgs.push(...outputPointers); // Add output pointers to WASM args
         }
 
@@ -257,17 +259,27 @@ class Project {
 
         // Retrieve output values (if any) - _getValue frees the output pointers
         let resultsArray: any[] = [];
-        if (definition.outputArgTypes.length > 0) {
+        if (definition.outputArgDefs.length > 0) {
           resultsArray = outputPointers.map((ptr, index) =>
-            this._getValue(ptr, definition.outputArgTypes[index]),
+            this._getValue(ptr, definition.outputArgDefs[index].type),
           );
           outputPointers = []; // Pointers are invalid now
         }
 
         // Format & Return results
-        if (definition.outputArgTypes.length === 0) return undefined;
-        if (definition.postProcess) return definition.postProcess(resultsArray);
-        return resultsArray.length === 1 ? resultsArray[0] : resultsArray;
+        if (definition.outputArgDefs.length === 0) return undefined;
+
+        // If there's only one output, return it directly
+        if (definition.outputArgDefs.length === 1) {
+          return resultsArray[0];
+        }
+
+        // For multiple outputs, return an object with named properties
+        const result: Record<string, any> = {};
+        definition.outputArgDefs.forEach((def, index) => {
+          result[def.name] = resultsArray[index];
+        });
+        return result;
       } catch (error) {
         // Cleanup ALL allocated pointers on error
         outputPointers.forEach((ptr) => {
