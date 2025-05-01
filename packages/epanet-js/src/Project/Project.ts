@@ -303,9 +303,9 @@ class Project {
         }
 
         // Process Input Arguments for WASM call (Handle Strings and Arrays)
-        userArgs.forEach((arg, index) => {
-          const inputDef = definition.inputArgDefs?.[index];
-          if (inputDef?.isStringPtr && typeof arg === "string") {
+        definition.inputArgDefs?.forEach((inputDef, index) => {
+          const arg = userArgs[index];
+          if (inputDef.isStringPtr && typeof arg === "string") {
             const utf8Length = this._EN.lengthBytesUTF8(arg) + 1; // Null terminator
             const ptr = this._EN._malloc(utf8Length);
             if (ptr === 0)
@@ -315,25 +315,24 @@ class Project {
             this._EN.stringToUTF8(arg, ptr, utf8Length);
             inputStringPointers.push(ptr); // Remember to free this
             processedWasmArgs.push(ptr); // Add pointer to WASM args
-          } else if (inputDef?.typeHint === "double[]") {
+          } else if (inputDef.typeHint === "double[]") {
             if (!Array.isArray(arg)) {
               throw new Error(`Argument ${index} must be an array`);
             }
             const ptr = this._allocateMemoryForArray(arg);
             arrayPointers.push(ptr);
             processedWasmArgs.push(ptr);
-          } else if (inputDef?.typeHint === "length") {
+          } else if (inputDef.typeHint === "length") {
             // For length parameters, find the corresponding array and use its length
             const arrayIndex = definition.inputArgDefs.findIndex(
-              (def) =>
-                def.typeHint === "double[]" &&
-                def.lengthFor === inputDef.lengthFor,
+              (def) => def.typeHint === "double[]",
             );
             if (arrayIndex === -1) {
               throw new Error(
                 `No array found for length parameter at index ${index}`,
               );
             }
+            // Use the user argument index that corresponds to the array definition index
             const arrayArg = userArgs[arrayIndex];
             if (!Array.isArray(arrayArg)) {
               throw new Error(

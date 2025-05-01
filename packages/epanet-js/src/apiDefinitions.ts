@@ -360,7 +360,7 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
       { typeHint: "number" }, // index
       { typeHint: "double[]" }, // x array
       { typeHint: "double[]" }, // y array
-      { typeHint: "length", lengthFor: "x" }, // count (automatically calculated from x array)
+      { typeHint: "length" }, // count (automatically calculated from x array)
     ],
     outputArgDefs: [],
   },
