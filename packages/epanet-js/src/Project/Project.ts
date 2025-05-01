@@ -459,8 +459,13 @@ class Project {
     const typedArray = new Float64Array(arr);
     const nDataBytes = typedArray.length * typedArray.BYTES_PER_ELEMENT;
     const dataPtr = this._EN._malloc(nDataBytes);
+    if (dataPtr === 0) {
+      throw new Error(
+        `Malloc failed allocating ${nDataBytes} bytes for array.`,
+      );
+    }
 
-    this._EN.HEAP8.set(new Uint8Array(typedArray.buffer), dataPtr);
+    this._EN.HEAPF64.set(typedArray, dataPtr / typedArray.BYTES_PER_ELEMENT);
 
     return dataPtr;
   }
