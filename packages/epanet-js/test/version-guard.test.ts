@@ -76,16 +76,16 @@ describe("EPANET Version Guarding", () => {
   it("should THROW when calling version-specific function with baseline version", () => {
     const workspace = new MockWorkspace(baselineVersion);
     const project = new Project(workspace);
-    const v23MethodName = "getSpecialNodePropertyV23";
-    expect(() => (project as any)[v23MethodName](1)).toThrow(
-      /Method 'getSpecialNodePropertyV23' requires EPANET v2\.3\.0.*loaded is v2\.2\.0/,
-    );
+    const v23MethodName = "openX";
+    expect(() =>
+      project[v23MethodName]("net.inp", "net.rpt", "net.bin"),
+    ).toThrow(/Method 'openX' requires EPANET v2\.3\.0.*loaded is v2\.2\.0/);
   });
 
   it("should ALLOW calling version-specific function with required version", () => {
     const workspace = new MockWorkspace(nextVersion);
     const project = new Project(workspace);
-    const v23MethodName = "getSpecialNodePropertyV23";
+    const v23MethodName = "openX";
     expect(() => (project as any)[v23MethodName](1)).not.toThrow();
   });
 
@@ -94,9 +94,9 @@ describe("EPANET Version Guarding", () => {
     const mockInstance = workspace.instance;
     delete (mockInstance as any)._EN_getspecialnodeprop_v23;
     const project = new Project(workspace);
-    const v23MethodName = "getSpecialNodePropertyV23";
+    const v23MethodName = "openX";
     expect(() => (project as any)[v23MethodName](1)).toThrow(
-      /EPANET function '_EN_getspecialnodeprop_v23' \(for method 'getSpecialNodePropertyV23'\) not found/,
+      /EPANET function '_EN_openX' \(for method 'openX'\) not found/,
     );
   });
 });

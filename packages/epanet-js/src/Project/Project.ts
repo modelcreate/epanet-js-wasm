@@ -41,7 +41,7 @@ class Project {
   ) => void; // Adjusted based on example C API
   // ... other baseline methods ...
 
-  getSpecialNodePropertyV23!: (nodeIndex: number) => number;
+  openX!: (inputFile: string, reportFile: string, binaryFile: string) => void;
   // ... other version-specific methods ...
 
   // Node Functions
@@ -187,15 +187,6 @@ class Project {
     methodName: string,
   ) {
     const wasmFunctionName = definition.wasmFunctionName;
-    const wasmFunction = this._EN[wasmFunctionName] as Function | undefined;
-
-    if (typeof wasmFunction !== "function") {
-      return () => {
-        throw new Error(
-          `EPANET function '${wasmFunctionName}' (for method '${methodName}') not found.`,
-        );
-      };
-    }
 
     return (...userArgs: any[]) => {
       // --- Runtime Version Check ---
@@ -210,6 +201,14 @@ class Project {
         );
       }
       // --- End Runtime Version Check ---
+
+      const wasmFunction = this._EN[wasmFunctionName] as Function | undefined;
+
+      if (typeof wasmFunction !== "function") {
+        throw new Error(
+          `EPANET function '${wasmFunctionName}' (for method '${methodName}') not found.`,
+        );
+      }
 
       let outputPointers: number[] = [];
       let inputStringPointers: number[] = []; // Track allocated input string pointers

@@ -1,8 +1,7 @@
 # To do
 
 - Generate Enums
-- Update epanet-engine to automatically add functions during compile
-  - missing some key functions
+- Generate typescript d.ts automatically
 - coverage
 
 # BREAKING CHANGES
