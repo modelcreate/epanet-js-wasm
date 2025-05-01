@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # --- Configuration ---
-HEADER_FILE="epanet2_2.h" # <-- Make sure this is the correct header
-OUTPUT_JSON="epanet_exports.json"
+HEADER_FILE="/opt/epanet/src/include/epanet2_2.h"
+OUTPUT_JSON="build/epanet_exports.json"
+
+mkdir -p build
 
 # --- Script Logic ---
 echo "Scanning '$HEADER_FILE' for DLLEXPORT functions..."
@@ -16,7 +18,7 @@ fi
 
 # 1. Run the confirmed working pipeline and store the result in a variable
 #    Using the exact grep pattern you confirmed works.
-function_list=$(grep 'int  DLLEXPORT ' "$HEADER_FILE" | \
+function_list=$(grep 'DLLEXPORT EN' "$HEADER_FILE" | \
                 sed -e 's/.*DLLEXPORT //; s/(.*//; s/^/_/' | \
                 sort | \
                 uniq)
@@ -32,7 +34,7 @@ fi
 # 3. Use awk to format the captured list (passed via echo) as a JSON array
 echo "Formatting function list into JSON..."
 echo "$function_list" | awk '
-  BEGIN { printf "[" }      # Start with the opening bracket
+  BEGIN { printf "[\"%s\",\"%s\",", "_malloc", "_free" }      # Start with the opening bracket
   NR > 1 { printf "," }     # Add a comma before every line except the first
   { printf "\"%s\"", $0 } # Print the current line (function name) enclosed in quotes
   END { print "]" }         # End with the closing bracket and a newline

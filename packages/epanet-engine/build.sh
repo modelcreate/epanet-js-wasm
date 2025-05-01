@@ -9,8 +9,12 @@ echo "============================================="
 
     mkdir -p dist
 
+    # Generate exports list
+    echo "Generating exports list..."
+    ./generate_exports.sh
+
     # Read the EPANET functions from the JSON file and add memory management functions
-    EXPORTED_FUNCTIONS=$(cat epanet_exports.json )
+    EXPORTED_FUNCTIONS=$(cat build/epanet_exports.json )
 
     emcc -O0 /opt/epanet/build/lib/libepanet2.a \
     -o dist/index.js \
