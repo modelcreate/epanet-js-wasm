@@ -142,4 +142,47 @@ describe("EPANET WASM Function Coverage and Project API", () => {
       `Public methods missing on Project: ${missingProjectMethods.join(", ")}`,
     ).toHaveLength(0);
   });
+
+  it("should have all _EN functions on workspace instance defined in apiDefinitions", async () => {
+    const workspace = new Workspace();
+    await workspace.loadModule();
+
+    const manuallyDefinedFunctions = [
+      "_EN_getversion",
+      "_EN_createproject",
+      "_EN_deleteproject",
+    ];
+
+    // Get all properties from workspace instance that start with _EN
+    const allInstanceProperties = Object.getOwnPropertyNames(
+      workspace.instance,
+    );
+    const enFunctions = allInstanceProperties.filter(
+      (propName) =>
+        propName.startsWith("_EN") &&
+        typeof (workspace.instance as any)[propName] === "function",
+    );
+
+    // Get all wasm function names from apiDefinitions
+    const definedWasmFunctions = new Set<string>(
+      Object.values(apiDefinitions).map((def) => def.wasmFunctionName),
+    );
+
+    // Add manually defined functions to the set
+    manuallyDefinedFunctions.forEach((funcName) => {
+      definedWasmFunctions.add(funcName);
+    });
+
+    // Find functions on workspace instance that don't have corresponding definitions
+    const missingDefinitions = enFunctions.filter(
+      (funcName) => !definedWasmFunctions.has(funcName),
+    );
+
+    expect(
+      missingDefinitions,
+      `_EN functions missing from apiDefinitions: ${missingDefinitions.join(
+        ", ",
+      )}`,
+    ).toHaveLength(0);
+  });
 });

@@ -3,6 +3,7 @@
 - Generate Enums
 - Generate typescript d.ts automatically
 - coverage
+- deal with project being deleted and running removeproject to clear memory
 
 # BREAKING CHANGES
 
