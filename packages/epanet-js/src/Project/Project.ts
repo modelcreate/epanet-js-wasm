@@ -20,6 +20,10 @@ import {
   StatusReport,
   AnalysisStatistic,
   ObjectType,
+  FlowUnits,
+  QualityType,
+  Option,
+  TimeParameter,
 } from "../enum";
 import { apiDefinitions } from "../apiDefinitions";
 
@@ -163,6 +167,30 @@ class Project {
   nextQ!: () => number;
   stepQ!: () => number;
   closeQ!: () => void;
+
+  // Analysis Options Functions
+  getFlowUnits!: () => FlowUnits;
+  getOption!: (option: Option) => number;
+  getQualityInfo!: () => {
+    qualType: QualityType;
+    chemName: string;
+    chemUnits: string;
+    traceNode: number;
+  };
+  getQualityType!: () => {
+    qualType: QualityType;
+    traceNode: number;
+  };
+  getTimeParameter!: (param: TimeParameter) => number;
+  setFlowUnits!: (units: FlowUnits) => void;
+  setOption!: (option: Option, value: number) => void;
+  setQualityType!: (
+    qualType: QualityType,
+    chemName: string,
+    chemUnits: string,
+    traceNode: string,
+  ) => void;
+  setTimeParameter!: (param: TimeParameter, value: number) => void;
 
   constructor(ws: Workspace) {
     this._ws = ws;

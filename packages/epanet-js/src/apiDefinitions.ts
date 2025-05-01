@@ -578,5 +578,79 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     outputArgDefs: [],
   },
 
+  // Analysis Options Functions
+  getFlowUnits: {
+    wasmFunctionName: "_EN_getflowunits",
+    inputArgDefs: [],
+    outputArgDefs: [{ name: "units", type: "int" }],
+  },
+
+  getOption: {
+    wasmFunctionName: "_EN_getoption",
+    inputArgDefs: [{ typeHint: "enum" }], // option (Option enum)
+    outputArgDefs: [{ name: "value", type: "double" }],
+  },
+
+  getQualityInfo: {
+    wasmFunctionName: "_EN_getqualinfo",
+    inputArgDefs: [],
+    outputArgDefs: [
+      { name: "qualType", type: "int" },
+      { name: "chemName", type: "char" },
+      { name: "chemUnits", type: "char" },
+      { name: "traceNode", type: "int" },
+    ],
+  },
+
+  getQualityType: {
+    wasmFunctionName: "_EN_getqualtype",
+    inputArgDefs: [],
+    outputArgDefs: [
+      { name: "qualType", type: "int" },
+      { name: "traceNode", type: "int" },
+    ],
+  },
+
+  getTimeParameter: {
+    wasmFunctionName: "_EN_gettimeparam",
+    inputArgDefs: [{ typeHint: "enum" }], // param (TimeParameter enum)
+    outputArgDefs: [{ name: "value", type: "long" }],
+  },
+
+  setFlowUnits: {
+    wasmFunctionName: "_EN_setflowunits",
+    inputArgDefs: [{ typeHint: "enum" }], // units (FlowUnits enum)
+    outputArgDefs: [],
+  },
+
+  setOption: {
+    wasmFunctionName: "_EN_setoption",
+    inputArgDefs: [
+      { typeHint: "enum" }, // option (Option enum)
+      { typeHint: "number" }, // value
+    ],
+    outputArgDefs: [],
+  },
+
+  setQualityType: {
+    wasmFunctionName: "_EN_setqualtype",
+    inputArgDefs: [
+      { typeHint: "enum" }, // qualType (QualityType enum)
+      { typeHint: "string", isStringPtr: true }, // chemName
+      { typeHint: "string", isStringPtr: true }, // chemUnits
+      { typeHint: "string", isStringPtr: true }, // traceNode
+    ],
+    outputArgDefs: [],
+  },
+
+  setTimeParameter: {
+    wasmFunctionName: "_EN_settimeparam",
+    inputArgDefs: [
+      { typeHint: "enum" }, // param (TimeParameter enum)
+      { typeHint: "number" }, // value
+    ],
+    outputArgDefs: [],
+  },
+
   // ... Define ALL other EPANET functions ...
 };

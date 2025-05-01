@@ -149,6 +149,7 @@ describe("EPANET WASM Function Coverage and Project API", () => {
 
     const manuallyDefinedFunctions = [
       "_EN_getversion",
+      "_EN_geterror",
       "_EN_createproject",
       "_EN_deleteproject",
     ];
