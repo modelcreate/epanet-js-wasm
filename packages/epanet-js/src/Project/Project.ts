@@ -24,6 +24,8 @@ import {
   QualityType,
   Option,
   TimeParameter,
+  DemandModel,
+  ControlType,
 } from "../enum";
 import { apiDefinitions } from "../apiDefinitions";
 
@@ -191,6 +193,72 @@ class Project {
     traceNode: string,
   ) => void;
   setTimeParameter!: (param: TimeParameter, value: number) => void;
+
+  // Nodal Demand Functions
+  addDemand!: (
+    nodeIndex: number,
+    baseDemand: number,
+    demandPattern: string,
+    demandName: string,
+  ) => void;
+  deleteDemand!: (nodeIndex: number, demandIndex: number) => void;
+  getBaseDemand!: (nodeIndex: number, demandIndex: number) => number;
+  getDemandIndex!: (nodeIndex: number, demandName: string) => number;
+  getDemandModel!: () => {
+    type: DemandModel;
+    pmin: number;
+    preq: number;
+    pexp: number;
+  };
+  getDemandName!: (nodeIndex: number, demandIndex: number) => string;
+  getDemandPattern!: (nodeIndex: number, demandIndex: number) => number;
+  getNumberOfDemands!: (nodeIndex: number) => number;
+  setBaseDemand!: (
+    nodeIndex: number,
+    demandIndex: number,
+    baseDemand: number,
+  ) => void;
+  setDemandModel!: (
+    type: DemandModel,
+    pmin: number,
+    preq: number,
+    pexp: number,
+  ) => void;
+  setDemandName!: (
+    nodeIndex: number,
+    demandIdx: number,
+    demandName: string,
+  ) => void;
+  setDemandPattern!: (
+    nodeIndex: number,
+    demandIndex: number,
+    patIndex: number,
+  ) => void;
+
+  // Simple Control Functions
+  addControl!: (
+    type: ControlType,
+    linkIndex: number,
+    setting: number,
+    nodeIndex: number,
+    level: number,
+  ) => number;
+  deleteControl!: (index: number) => void;
+  getControl!: (index: number) => {
+    type: ControlType;
+    linkIndex: number;
+    setting: number;
+    nodeIndex: number;
+    level: number;
+  };
+  setControl!: (
+    index: number,
+    type: ControlType,
+    linkIndex: number,
+    setting: number,
+    nodeIndex: number,
+    level: number,
+  ) => void;
 
   constructor(ws: Workspace) {
     this._ws = ws;

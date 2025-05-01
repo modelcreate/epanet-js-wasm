@@ -652,5 +652,164 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     outputArgDefs: [],
   },
 
+  // Nodal Demand Functions
+  addDemand: {
+    wasmFunctionName: "_EN_adddemand",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // baseDemand
+      { typeHint: "string", isStringPtr: true }, // demandPattern
+      { typeHint: "string", isStringPtr: true }, // demandName
+    ],
+    outputArgDefs: [],
+  },
+
+  deleteDemand: {
+    wasmFunctionName: "_EN_deletedemand",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // demandIndex
+    ],
+    outputArgDefs: [],
+  },
+
+  getBaseDemand: {
+    wasmFunctionName: "_EN_getbasedemand",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // demandIndex
+    ],
+    outputArgDefs: [{ name: "baseDemand", type: "double" }],
+  },
+
+  getDemandIndex: {
+    wasmFunctionName: "_EN_getdemandindex",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "string", isStringPtr: true }, // demandName
+    ],
+    outputArgDefs: [{ name: "demandIndex", type: "int" }],
+  },
+
+  getDemandModel: {
+    wasmFunctionName: "_EN_getdemandmodel",
+    inputArgDefs: [],
+    outputArgDefs: [
+      { name: "type", type: "int" },
+      { name: "pmin", type: "double" },
+      { name: "preq", type: "double" },
+      { name: "pexp", type: "double" },
+    ],
+  },
+
+  getDemandName: {
+    wasmFunctionName: "_EN_getdemandname",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // demandIndex
+    ],
+    outputArgDefs: [{ name: "demandName", type: "char" }],
+  },
+
+  getDemandPattern: {
+    wasmFunctionName: "_EN_getdemandpattern",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // demandIndex
+    ],
+    outputArgDefs: [{ name: "patternIndex", type: "int" }],
+  },
+
+  getNumberOfDemands: {
+    wasmFunctionName: "_EN_getnumdemands",
+    inputArgDefs: [{ typeHint: "number" }], // nodeIndex
+    outputArgDefs: [{ name: "numDemands", type: "int" }],
+  },
+
+  setBaseDemand: {
+    wasmFunctionName: "_EN_setbasedemand",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // demandIndex
+      { typeHint: "number" }, // baseDemand
+    ],
+    outputArgDefs: [],
+  },
+
+  setDemandModel: {
+    wasmFunctionName: "_EN_setdemandmodel",
+    inputArgDefs: [
+      { typeHint: "enum" }, // type (DemandModel enum)
+      { typeHint: "number" }, // pmin
+      { typeHint: "number" }, // preq
+      { typeHint: "number" }, // pexp
+    ],
+    outputArgDefs: [],
+  },
+
+  setDemandName: {
+    wasmFunctionName: "_EN_setdemandname",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // demandIdx
+      { typeHint: "string", isStringPtr: true }, // demandName
+    ],
+    outputArgDefs: [],
+  },
+
+  setDemandPattern: {
+    wasmFunctionName: "_EN_setdemandpattern",
+    inputArgDefs: [
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // demandIndex
+      { typeHint: "number" }, // patIndex
+    ],
+    outputArgDefs: [],
+  },
+
+  // Simple Control Functions
+  addControl: {
+    wasmFunctionName: "_EN_addcontrol",
+    inputArgDefs: [
+      { typeHint: "enum" }, // type (ControlType enum)
+      { typeHint: "number" }, // linkIndex
+      { typeHint: "number" }, // setting
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // level
+    ],
+    outputArgDefs: [{ name: "controlIndex", type: "int" }],
+  },
+
+  deleteControl: {
+    wasmFunctionName: "_EN_deletecontrol",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [],
+  },
+
+  getControl: {
+    wasmFunctionName: "_EN_getcontrol",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [
+      { name: "type", type: "int" },
+      { name: "linkIndex", type: "int" },
+      { name: "setting", type: "double" },
+      { name: "nodeIndex", type: "int" },
+      { name: "level", type: "double" },
+    ],
+  },
+
+  setControl: {
+    wasmFunctionName: "_EN_setcontrol",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "enum" }, // type (ControlType enum)
+      { typeHint: "number" }, // linkIndex
+      { typeHint: "number" }, // setting
+      { typeHint: "number" }, // nodeIndex
+      { typeHint: "number" }, // level
+    ],
+    outputArgDefs: [],
+  },
+
   // ... Define ALL other EPANET functions ...
 };
