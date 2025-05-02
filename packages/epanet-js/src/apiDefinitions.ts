@@ -631,7 +631,7 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
   getTimeParameter: {
     wasmFunctionName: "_EN_gettimeparam",
     inputArgDefs: [{ typeHint: "enum" }], // param (TimeParameter enum)
-    outputArgDefs: [{ name: "value", type: "long" }],
+    outputArgDefs: [{ name: "value", type: "int" }],
   },
 
   setFlowUnits: {

@@ -1,12 +1,7 @@
 import type { EpanetModule } from "@model-create/epanet-engine";
 
 // Define memory types more strictly
-export type EpanetMemoryType =
-  | "int"
-  | "long"
-  | "double"
-  | "char"
-  | "char-title";
+export type EpanetMemoryType = "int" | "double" | "char" | "char-title";
 
 // Mapping for JS return types
 export interface MemoryTypes {
