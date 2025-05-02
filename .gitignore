@@ -4,6 +4,8 @@ node_modules
 
 .DS_Store
 
+# Coverage
+/packages/epanet-js/coverage
 
 # Networks
 /packages/epanet-engine/tests/networks
