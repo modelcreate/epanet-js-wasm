@@ -5,6 +5,9 @@
 - coverage
 - deal with project being deleted and running removeproject to clear memory
 
+setLinkType broken in tests and here:
+https://github.com/modelcreate/epanet-js/issues/24
+
 # BREAKING CHANGES
 
 writeFile(path: string, data: string | Uint8Array) {
