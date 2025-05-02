@@ -152,6 +152,7 @@ describe("EPANET WASM Function Coverage and Project API", () => {
       "_EN_geterror",
       "_EN_createproject",
       "_EN_deleteproject",
+      "_EN_getcurve", // Complex function handled manually
     ];
 
     // Get all properties from workspace instance that start with _EN

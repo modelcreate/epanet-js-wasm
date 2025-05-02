@@ -368,6 +368,65 @@ class Project {
   ) => void;
   setCurve!: (index: number, xValues: number[], yValues: number[]) => void;
 
+  // Complex Functions
+  getCurve(index: number): {
+    id: string;
+    x: number[];
+    y: number[];
+  } {
+    // Get the number of points in the curve
+    const nPoints = this.getCurveLenth(index);
+
+    // Allocate memory for the ID string (EN_MAXID + 1 characters)
+    const idPtr = this._EN._malloc(32); // EN_MAXID is typically 32
+
+    // Allocate memory for the x and y arrays
+    const xPtr = this._EN._malloc(nPoints * 8); // 8 bytes per double
+    const yPtr = this._EN._malloc(nPoints * 8);
+
+    // Allocate memory for nPoints output
+    const nPointsPtr = this._EN._malloc(4); // 4 bytes for int
+
+    try {
+      // Call the WASM function
+      const errorCode = this._EN._EN_getcurve(
+        this._projectHandle,
+        index,
+        idPtr,
+        nPointsPtr,
+        xPtr,
+        yPtr,
+      );
+
+      // Check for errors
+      this._checkError(errorCode);
+
+      // Read the ID string
+      const id = this._EN.UTF8ToString(idPtr);
+
+      // Read the x and y arrays
+      const x = new Array(nPoints);
+      const y = new Array(nPoints);
+
+      for (let i = 0; i < nPoints; i++) {
+        x[i] = this._EN.getValue(xPtr + i * 8, "double");
+        y[i] = this._EN.getValue(yPtr + i * 8, "double");
+      }
+
+      return {
+        id,
+        x,
+        y,
+      };
+    } finally {
+      // Free allocated memory
+      this._EN._free(idPtr);
+      this._EN._free(xPtr);
+      this._EN._free(yPtr);
+      this._EN._free(nPointsPtr);
+    }
+  }
+
   constructor(ws: Workspace) {
     this._ws = ws;
     // Assign the instance, assuming it includes EPANET functions and Emscripten helpers
