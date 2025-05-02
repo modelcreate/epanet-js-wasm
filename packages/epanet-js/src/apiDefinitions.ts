@@ -811,5 +811,237 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     outputArgDefs: [],
   },
 
+  // Rule-Based Control Functions
+  addRule: {
+    wasmFunctionName: "_EN_addrule",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // rule
+    outputArgDefs: [],
+  },
+
+  deleteRule: {
+    wasmFunctionName: "_EN_deleterule",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [],
+  },
+
+  getRule: {
+    wasmFunctionName: "_EN_getrule",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [
+      { name: "premiseCount", type: "int" },
+      { name: "thenActionCount", type: "int" },
+      { name: "elseActionCount", type: "int" },
+      { name: "priority", type: "double" },
+    ],
+  },
+
+  getRuleId: {
+    wasmFunctionName: "_EN_getruleID",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "id", type: "char" }],
+  },
+
+  getPremise: {
+    wasmFunctionName: "_EN_getpremise",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // premiseIndex
+    ],
+    outputArgDefs: [
+      { name: "logop", type: "int" },
+      { name: "object", type: "int" },
+      { name: "objIndex", type: "int" },
+      { name: "variable", type: "int" },
+      { name: "relop", type: "int" },
+      { name: "status", type: "int" },
+      { name: "value", type: "double" },
+    ],
+  },
+
+  setPremise: {
+    wasmFunctionName: "_EN_setpremise",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // premiseIndex
+      { typeHint: "number" }, // logop
+      { typeHint: "enum" }, // object (RuleObject enum)
+      { typeHint: "number" }, // objIndex
+      { typeHint: "enum" }, // variable (RuleVariable enum)
+      { typeHint: "enum" }, // relop (RuleOperator enum)
+      { typeHint: "enum" }, // status (RuleStatus enum)
+      { typeHint: "number" }, // value
+    ],
+    outputArgDefs: [],
+  },
+
+  setPremiseIndex: {
+    wasmFunctionName: "_EN_setpremiseindex",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // premiseIndex
+      { typeHint: "number" }, // objIndex
+    ],
+    outputArgDefs: [],
+  },
+
+  setPremiseStatus: {
+    wasmFunctionName: "_EN_setpremisestatus",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // premiseIndex
+      { typeHint: "enum" }, // status (RuleStatus enum)
+    ],
+    outputArgDefs: [],
+  },
+
+  setPremiseValue: {
+    wasmFunctionName: "_EN_setpremisevalue",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // premiseIndex
+      { typeHint: "number" }, // value
+    ],
+    outputArgDefs: [],
+  },
+
+  getThenAction: {
+    wasmFunctionName: "_EN_getthenaction",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // actionIndex
+    ],
+    outputArgDefs: [
+      { name: "linkIndex", type: "int" },
+      { name: "status", type: "int" },
+      { name: "setting", type: "double" },
+    ],
+  },
+
+  setThenAction: {
+    wasmFunctionName: "_EN_setthenaction",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // actionIndex
+      { typeHint: "number" }, // linkIndex
+      { typeHint: "enum" }, // status (RuleStatus enum)
+      { typeHint: "number" }, // setting
+    ],
+    outputArgDefs: [],
+  },
+
+  getElseAction: {
+    wasmFunctionName: "_EN_getelseaction",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // actionIndex
+    ],
+    outputArgDefs: [
+      { name: "linkIndex", type: "int" },
+      { name: "status", type: "int" },
+      { name: "setting", type: "double" },
+    ],
+  },
+
+  setElseAction: {
+    wasmFunctionName: "_EN_setelseaction",
+    inputArgDefs: [
+      { typeHint: "number" }, // ruleIndex
+      { typeHint: "number" }, // actionIndex
+      { typeHint: "number" }, // linkIndex
+      { typeHint: "enum" }, // status (RuleStatus enum)
+      { typeHint: "number" }, // setting
+    ],
+    outputArgDefs: [],
+  },
+
+  setRulePriority: {
+    wasmFunctionName: "_EN_setrulepriority",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "number" }, // priority
+    ],
+    outputArgDefs: [],
+  },
+
+  // Data Curve Functions
+  addCurve: {
+    wasmFunctionName: "_EN_addcurve",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // id
+    outputArgDefs: [],
+  },
+
+  deleteCurve: {
+    wasmFunctionName: "_EN_deletecurve",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [],
+  },
+
+  getCurveIndex: {
+    wasmFunctionName: "_EN_getcurveindex",
+    inputArgDefs: [{ typeHint: "string", isStringPtr: true }], // id
+    outputArgDefs: [{ name: "index", type: "int" }],
+  },
+
+  getCurveId: {
+    wasmFunctionName: "_EN_getcurveid",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "id", type: "char" }],
+  },
+
+  setCurveId: {
+    wasmFunctionName: "_EN_setcurveid",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "string", isStringPtr: true }, // id
+    ],
+    outputArgDefs: [],
+  },
+
+  getCurveLenth: {
+    wasmFunctionName: "_EN_getcurvelen",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "length", type: "int" }],
+  },
+
+  getCurveType: {
+    wasmFunctionName: "_EN_getcurvetype",
+    inputArgDefs: [{ typeHint: "number" }], // index
+    outputArgDefs: [{ name: "type", type: "int" }],
+  },
+
+  getCurveValue: {
+    wasmFunctionName: "_EN_getcurvevalue",
+    inputArgDefs: [
+      { typeHint: "number" }, // curveIndex
+      { typeHint: "number" }, // pointIndex
+    ],
+    outputArgDefs: [
+      { name: "x", type: "double" },
+      { name: "y", type: "double" },
+    ],
+  },
+
+  setCurveValue: {
+    wasmFunctionName: "_EN_setcurvevalue",
+    inputArgDefs: [
+      { typeHint: "number" }, // curveIndex
+      { typeHint: "number" }, // pointIndex
+      { typeHint: "number" }, // x
+      { typeHint: "number" }, // y
+    ],
+    outputArgDefs: [],
+  },
+
+  setCurve: {
+    wasmFunctionName: "_EN_setcurve",
+    inputArgDefs: [
+      { typeHint: "number" }, // index
+      { typeHint: "double[]" }, // xValues array
+      { typeHint: "double[]" }, // yValues array
+      { typeHint: "length" }, // count (automatically calculated from xValues array)
+    ],
+    outputArgDefs: [],
+  },
+
   // ... Define ALL other EPANET functions ...
 };

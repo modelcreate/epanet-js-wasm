@@ -26,6 +26,11 @@ import {
   TimeParameter,
   DemandModel,
   ControlType,
+  RuleObject,
+  RuleVariable,
+  RuleOperator,
+  RuleStatus,
+  CurveType,
 } from "../enum";
 import { apiDefinitions } from "../apiDefinitions";
 
@@ -259,6 +264,109 @@ class Project {
     nodeIndex: number,
     level: number,
   ) => void;
+
+  // Rule-Based Control Functions
+  addRule!: (rule: string) => void;
+  deleteRule!: (index: number) => void;
+  getRule!: (index: number) => {
+    premiseCount: number;
+    thenActionCount: number;
+    elseActionCount: number;
+    priority: number;
+  };
+  getRuleId!: (index: number) => string;
+  getPremise!: (
+    ruleIndex: number,
+    premiseIndex: number,
+  ) => {
+    logop: number;
+    object: RuleObject;
+    objIndex: number;
+    variable: RuleVariable;
+    relop: RuleOperator;
+    status: RuleStatus;
+    value: number;
+  };
+  setPremise!: (
+    ruleIndex: number,
+    premiseIndex: number,
+    logop: number,
+    object: RuleObject,
+    objIndex: number,
+    variable: RuleVariable,
+    relop: RuleOperator,
+    status: RuleStatus,
+    value: number,
+  ) => void;
+  setPremiseIndex!: (
+    ruleIndex: number,
+    premiseIndex: number,
+    objIndex: number,
+  ) => void;
+  setPremiseStatus!: (
+    ruleIndex: number,
+    premiseIndex: number,
+    status: RuleStatus,
+  ) => void;
+  setPremiseValue!: (
+    ruleIndex: number,
+    premiseIndex: number,
+    value: number,
+  ) => void;
+  getThenAction!: (
+    ruleIndex: number,
+    actionIndex: number,
+  ) => {
+    linkIndex: number;
+    status: RuleStatus;
+    setting: number;
+  };
+  setThenAction!: (
+    ruleIndex: number,
+    actionIndex: number,
+    linkIndex: number,
+    status: RuleStatus,
+    setting: number,
+  ) => void;
+  getElseAction!: (
+    ruleIndex: number,
+    actionIndex: number,
+  ) => {
+    linkIndex: number;
+    status: RuleStatus;
+    setting: number;
+  };
+  setElseAction!: (
+    ruleIndex: number,
+    actionIndex: number,
+    linkIndex: number,
+    status: RuleStatus,
+    setting: number,
+  ) => void;
+  setRulePriority!: (index: number, priority: number) => void;
+
+  // Data Curve Functions
+  addCurve!: (id: string) => void;
+  deleteCurve!: (index: number) => void;
+  getCurveIndex!: (id: string) => number;
+  getCurveId!: (index: number) => string;
+  setCurveId!: (index: number, id: string) => void;
+  getCurveLenth!: (index: number) => number;
+  getCurveType!: (index: number) => CurveType;
+  getCurveValue!: (
+    curveIndex: number,
+    pointIndex: number,
+  ) => {
+    x: number;
+    y: number;
+  };
+  setCurveValue!: (
+    curveIndex: number,
+    pointIndex: number,
+    x: number,
+    y: number,
+  ) => void;
+  setCurve!: (index: number, xValues: number[], yValues: number[]) => void;
 
   constructor(ws: Workspace) {
     this._ws = ws;
