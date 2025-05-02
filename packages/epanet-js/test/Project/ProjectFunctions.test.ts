@@ -1,5 +1,5 @@
 import { Project, Workspace } from "../../src";
-import { CountType, NodeType } from "../../src/enum";
+import { CountType, NodeType, ObjectType } from "../../src/enum";
 
 import fs from "fs";
 
@@ -92,6 +92,15 @@ describe("Epanet Project Functions", () => {
       const duplicateFile = ws.readFile("net1_backup.inp");
 
       expect(duplicateFile).toEqual(netGenerated);
+    });
+    test("get and set comment", () => {
+      ws.writeFile("net1.inp", net1);
+      const model = new Project(ws);
+      model.open("net1.inp", "report.rpt", "out.bin");
+
+      model.setComment(ObjectType.Node, 1, "Comment 1");
+      const comment = model.getComment(ObjectType.Node, 1);
+      expect(comment).toEqual("Comment 1");
     });
   });
 });

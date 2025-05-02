@@ -78,6 +78,23 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     ],
     outputArgDefs: [],
   },
+  getComment: {
+    wasmFunctionName: "_EN_getcomment",
+    inputArgDefs: [
+      { typeHint: "enum" }, // EN_NODE, EN_LINK, EN_TIMEPAT or EN_CURVE
+      { typeHint: "number" }, // index
+    ],
+    outputArgDefs: [{ name: "comment", type: "char" }],
+  },
+  setComment: {
+    wasmFunctionName: "_EN_setcomment",
+    inputArgDefs: [
+      { typeHint: "enum" }, // EN_NODE, EN_LINK, EN_TIMEPAT or EN_CURVE
+      { typeHint: "number" }, // index
+      { typeHint: "string", isStringPtr: true }, // index
+    ],
+    outputArgDefs: [],
+  },
 
   // --- Example Version-Gated Function ---
   openX: {

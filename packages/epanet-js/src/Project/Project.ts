@@ -62,8 +62,8 @@ class Project {
     demand: number,
     patternId: string,
   ) => void; // Adjusted based on example C API
-  // ... other baseline methods ...
-
+  getComment!: (objectType: ObjectType, index: number) => string;
+  setComment!: (objectType: ObjectType, index: number, comment: string) => void;
   openX!: (inputFile: string, reportFile: string, binaryFile: string) => void;
   // ... other version-specific methods ...
 
