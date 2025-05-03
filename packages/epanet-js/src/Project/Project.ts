@@ -42,15 +42,6 @@ class Project {
   private readonly _absoluteMinVersion = 20200;
 
   // --- Declare Public API Methods with '!' ---
-  init!: (
-    reportFile: string,
-    binaryFile: string,
-    unitsType: number,
-    headlossType: number,
-  ) => void;
-  open!: (inputFile: string, reportFile: string, binaryFile: string) => void;
-  close!: () => void;
-  getCount!: (countType: CountType) => number;
   getComment!: (objectType: ObjectType, index: number) => string;
   setComment!: (objectType: ObjectType, index: number, comment: string) => void;
   openX!: (inputFile: string, reportFile: string, binaryFile: string) => void;
@@ -131,8 +122,17 @@ class Project {
   setVertices!: (index: number, x: number[], y: number[]) => void;
 
   // Project Functions
+  close!: () => void;
+  getCount!: (countType: CountType) => number;
   getTitle!: () => { line1: string; line2: string; line3: string };
   setTitle!: (line1: string, line2: string, line3: string) => void;
+  init!: (
+    reportFile: string,
+    binaryFile: string,
+    unitsType: number,
+    headlossType: number,
+  ) => void;
+  open!: (inputFile: string, reportFile: string, binaryFile: string) => void;
   saveInpFile!: (filename: string) => void;
   runProject!: (
     inputFile: string,
