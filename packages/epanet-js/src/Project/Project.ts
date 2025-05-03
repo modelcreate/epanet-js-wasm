@@ -50,24 +50,24 @@ class Project {
   ) => void;
   open!: (inputFile: string, reportFile: string, binaryFile: string) => void;
   close!: () => void;
-  addNode!: (id: string, type: NodeType) => number;
   getCount!: (countType: CountType) => number;
-  getNodeIndex!: (id: string) => number;
-  getNodeValue!: (index: number, property: NodeProperty) => number;
-  setNodeValue!: (index: number, property: NodeProperty, value: number) => void;
-  getNodeType!: (nodeIndex: number) => NodeType;
-  setJunctionData!: (
-    nodeIndex: number,
-    elev: number,
-    demand: number,
-    patternId: string,
-  ) => void; // Adjusted based on example C API
   getComment!: (objectType: ObjectType, index: number) => string;
   setComment!: (objectType: ObjectType, index: number, comment: string) => void;
   openX!: (inputFile: string, reportFile: string, binaryFile: string) => void;
   // ... other version-specific methods ...
 
   // Node Functions
+  addNode!: (id: string, type: NodeType) => number;
+  getNodeIndex!: (id: string) => number;
+  getNodeValue!: (index: number, property: NodeProperty) => number;
+  setNodeValue!: (index: number, property: NodeProperty, value: number) => void;
+  setJunctionData!: (
+    nodeIndex: number,
+    elev: number,
+    demand: number,
+    patternId: string,
+  ) => void;
+  getNodeType!: (nodeIndex: number) => NodeType;
   deleteNode!: (index: number, actionCode: ActionCodeType) => void;
   getNodeId!: (index: number) => string;
   setNodeId!: (index: number, newid: string) => void;
