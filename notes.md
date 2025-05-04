@@ -4,6 +4,7 @@
 - Generate typescript d.ts automatically
 - coverage
 - deal with project being deleted and running removeproject to clear memory
+  - Running the hydraulic tests in parallel causes memory, issues, maybe dealing with removeproject will fix this
 
 setLinkType broken in tests and here:
 https://github.com/modelcreate/epanet-js/issues/24
