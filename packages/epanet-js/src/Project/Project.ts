@@ -34,12 +34,55 @@ import {
 } from "../enum";
 import { apiDefinitions } from "../apiDefinitions";
 
+interface FinalizerHeldValue {
+  projectHandle: number;
+  enInstance: EpanetModule;
+}
+
 class Project {
   _ws: Workspace;
   _EN: EpanetModule; // Use the combined type EpanetModule
   private _projectHandle!: number; // Assert definite assignment
   private _epanetVersionInt: number = -1;
   private readonly _absoluteMinVersion = 20200;
+
+  private static readonly _finalizer =
+    new FinalizationRegistry<FinalizerHeldValue>(
+      (heldValue: FinalizerHeldValue) => {
+        const { projectHandle, enInstance } = heldValue;
+
+        if (projectHandle !== 0) {
+          const funcName = "_EN_deleteproject";
+          const deleteProjectFunc = enInstance[funcName] as
+            | Function
+            | undefined;
+
+          if (typeof deleteProjectFunc === "function") {
+            try {
+              const errorCode = deleteProjectFunc(projectHandle);
+              if (errorCode !== 0) {
+                console.warn(
+                  `Finalizer: _EN_deleteproject returned code ${errorCode} for handle ${projectHandle}`,
+                );
+              }
+            } catch (err) {
+              console.warn(
+                `Error during finalization cleanup for handle ${projectHandle}: ${err}`,
+              );
+            }
+          } else {
+            console.warn(
+              `Finalizer: Function ${funcName} not found in EpanetModule instance during cleanup for handle ${projectHandle}.`,
+            );
+          }
+        } else {
+          //  Log if called with 0 handle, though unlikely if registered correctly
+          console.warn(
+            "Finalizer callback invoked for an already zeroed handle.",
+          );
+        }
+      },
+    );
 
   // --- Declare Public API Methods with '!' ---
   getComment!: (objectType: ObjectType, index: number) => string;
@@ -466,6 +509,12 @@ class Project {
 
     this._epanetVersionInt = this._getAndVerifyEpanetVersion();
     this._buildApiMethods();
+
+    // Register this object with the finalizer
+    Project._finalizer.register(this, {
+      projectHandle: this._projectHandle,
+      enInstance: this._EN,
+    });
   }
 
   private _createProject(): number {
