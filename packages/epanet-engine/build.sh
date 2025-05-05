@@ -13,6 +13,9 @@ echo "============================================="
     echo "Extracting epanet2_2.h..."
     cp /opt/epanet/src/include/epanet2_2.h type-gen/
 
+    echo "Extracting epanet2_enums.h..."
+    cp /opt/epanet/src/include/epanet2_enums.h type-gen/
+
     # Generate exports list
     echo "Generating exports list..."
     ./generate_exports.sh
