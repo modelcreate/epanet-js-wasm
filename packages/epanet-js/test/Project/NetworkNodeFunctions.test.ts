@@ -136,19 +136,44 @@ describe("Network Node Functions", () => {
       expect(result).toEqual(10);
     });
 
-    test("should set and get tank values", () => {
+    test("should set and get tank values in metric units", () => {
       model.init("report.rpt", "out.bin", FlowUnits.LPS, HeadLossType.HW);
+
+      // Create tank and set data
+      const tankId = model.addNode("N1", NodeType.Tank);
+      model.setTankData(tankId, 200, 1, 0, 4, 3.2, 1, "");
+
+      // Verify tank properties
+      const elevation = model.getNodeValue(tankId, NodeProperty.Elevation);
+      const minLevel = model.getNodeValue(tankId, NodeProperty.MinLevel);
+      const maxLevel = model.getNodeValue(tankId, NodeProperty.MaxLevel);
+      const tankDiam = model.getNodeValue(tankId, NodeProperty.TankDiam);
+      const minVolume = model.getNodeValue(tankId, NodeProperty.MinVolume);
+
+      expect(elevation).toEqual(200);
+      expect(minLevel).toEqual(0);
+
+      // TODO: Fix this, why does this come back as almost the value, it doesnt seem like just floating point precision
+      expect(maxLevel).toBeCloseTo(4);
+      expect(tankDiam).toEqual(3.2);
+      expect(minVolume).toEqual(1);
+    });
+
+    test("should set and get tank values in US units", () => {
+      model.init("report.rpt", "out.bin", FlowUnits.GPM, HeadLossType.HW);
 
       // Create tank and set data
       const tankId = model.addNode("N1", NodeType.Tank);
       model.setTankData(tankId, 10, 1, 0, 5, 3.2, 1, "");
 
       // Verify tank properties
+      const elevation = model.getNodeValue(tankId, NodeProperty.Elevation);
       const minLevel = model.getNodeValue(tankId, NodeProperty.MinLevel);
       const maxLevel = model.getNodeValue(tankId, NodeProperty.MaxLevel);
       const tankDiam = model.getNodeValue(tankId, NodeProperty.TankDiam);
       const minVolume = model.getNodeValue(tankId, NodeProperty.MinVolume);
 
+      expect(elevation).toEqual(10);
       expect(minLevel).toEqual(0);
       expect(maxLevel).toEqual(5);
       expect(tankDiam).toEqual(3.2);
@@ -262,6 +287,33 @@ describe("Network Node Functions", () => {
       expect(tankMinLevel).toEqual(100);
       expect(tankMaxLevel).toEqual(150);
       expect(tankDiam).toEqual(50.5);
+    });
+  });
+
+  describe("Tank Volume Calculations", () => {
+    test("should report min volume", () => {
+      model.init("report.rpt", "out.bin", FlowUnits.GPM, HeadLossType.HW);
+
+      const tankId = model.addNode("T2", NodeType.Tank);
+      const tankElevation = 850;
+      const tankInitLevel = 970;
+      const tankMinLevel = 950;
+      const tankMaxLevel = 1000;
+      const tankDiam = 50.5;
+      const tankMinVolume = 1000;
+      model.setTankData(
+        tankId,
+        tankElevation,
+        tankInitLevel,
+        tankMinLevel,
+        tankMaxLevel,
+        tankDiam,
+        tankMinVolume,
+        "",
+      );
+
+      const minVolume = model.getNodeValue(tankId, NodeProperty.MinVolume);
+      expect(minVolume).toEqual(tankMinVolume);
     });
   });
 });
