@@ -12,7 +12,8 @@ node_modules
 
 
 # Typegen
-/type-gen/epanet2_2.d.ts
+/packages/epanet-engine/type-gen/epanet2_2.d.ts
+/packages/epanet-engine/type-gen/epanet2_2.h
 
 /packages/epanet-engine/dist/*
 /packages/epanet-engine/build/*

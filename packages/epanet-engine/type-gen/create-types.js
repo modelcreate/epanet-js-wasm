@@ -504,6 +504,7 @@ export interface ${MODULE_INTERFACE_NAME} {
     stringToNewUTF8(str: string): ${POINTER_TYPE_NAME};
     UTF8ToString(ptr: ${POINTER_TYPE_NAME}): string;
     HEAP8: Int8Array;
+    HEAP32: Int32Array;
     HEAPF64: Float64Array;
     // Add any other EXPORTED_RUNTIME_METHODS here
 
