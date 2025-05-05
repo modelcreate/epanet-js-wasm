@@ -3,7 +3,7 @@ import path from 'path';
 
 // --- Configuration ---
 const HEADER_FILE_PATH = './type-gen/epanet2_2.h'; // Path to your header
-const OUTPUT_D_TS_PATH = './type-gen/epanet2_2.d.ts'; // Where to write the .d.ts
+const OUTPUT_D_TS_PATH = './dist/index.d.ts'; // Where to write the .d.ts
 const POINTER_TYPE_NAME = 'Pointer'; // TS type alias for C pointers
 const KNOWN_POINTER_TYPES = ['char *', 'const char *', 'int *', 'float *', 'double *', 'EN_Project', 'void *']; // Add known pointer types (EN_Project is likely a typedef for a pointer)
 const MODULE_INTERFACE_NAME = 'EpanetModule';

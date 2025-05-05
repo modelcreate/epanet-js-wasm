@@ -11,7 +11,7 @@ echo "============================================="
 
     # Extract epanet2_2.h from the EPANET repository
     echo "Extracting epanet2_2.h..."
-    cp /opt/epanet/include/epanet2_2.h type-gen/
+    cp /opt/epanet/src/include/epanet2_2.h type-gen/
 
     # Generate exports list
     echo "Generating exports list..."
