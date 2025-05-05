@@ -72,6 +72,7 @@ export interface EmscriptenModule {
   ) => number; // Add other types if needed
   UTF8ToString: (ptr: number) => string;
   HEAP8: Int8Array; // Changed from Int8Array to Uint8Array
+  HEAP32: Int32Array; // Changed from Int32Array to Uint32Array
   Epanet: any; // Constructor or namespace for the EPANET object/class
   [key: string]: any; // Add index signature for string keys
 }

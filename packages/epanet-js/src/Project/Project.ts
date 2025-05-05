@@ -98,11 +98,6 @@ class Project {
   getLinkId!: (index: number) => string;
   setLinkId!: (index: number, newid: string) => void;
   getLinkType!: (index: number) => LinkType;
-  setLinkType!: (
-    index: number,
-    linkType: LinkType,
-    actionCode: ActionCodeType,
-  ) => number;
   getLinkNodes!: (index: number) => { node1: number; node2: number };
   setLinkNodes!: (index: number, node1: number, node2: number) => void;
   getLinkValue!: (index: number, property: LinkProperty) => number;
@@ -424,6 +419,39 @@ class Project {
       this._EN._free(xPtr);
       this._EN._free(yPtr);
       this._EN._free(nPointsPtr);
+    }
+  }
+
+  setLinkType(
+    index: number,
+    linkType: LinkType,
+    actionCode: ActionCodeType,
+  ): number {
+    // Allocate memory for the inout_index pointer
+    const indexPtr = this._EN._malloc(4); // 4 bytes for int
+
+    try {
+      // Initialize the pointer with the input index using HEAP32
+      this._EN.HEAP32[indexPtr >> 2] = index;
+
+      // Call the WASM function
+      const errorCode = this._EN._EN_setlinktype(
+        this._projectHandle,
+        indexPtr,
+        linkType,
+        actionCode,
+      );
+
+      // Check for errors
+      this._checkError(errorCode);
+
+      // Get the new index value from the pointer
+      const newIndex = this._EN.getValue(indexPtr, "i32");
+
+      return newIndex;
+    } finally {
+      // Free allocated memory
+      this._EN._free(indexPtr);
     }
   }
 
@@ -751,9 +779,6 @@ class Project {
         case "int":
           memsize = 4;
           break;
-        case "long":
-          memsize = 8;
-          break; // Assume 64-bit
         case "double":
         default:
           memsize = 8;
@@ -793,9 +818,7 @@ class Project {
       if (type === "char" || type === "char-title") {
         value = this._EN.UTF8ToString(pointer);
       } else {
-        const emsType =
-          type === "int" ? "i32" : type === "long" ? "i64" : "double";
-        // Note: Handle potential BigInt for i64 if necessary
+        const emsType = type === "int" ? "i32" : "double";
         value = this._EN.getValue(pointer, emsType);
       }
     } catch (e) {

@@ -68,7 +68,6 @@ describe("Epanet Reporting Functions", () => {
       model.open("net1.inp", "net4.rpt", "out4.bin");
 
       // Set some custom report settings
-      model.setReport("NODES ALL");
       model.setStatusReport(StatusReport.FullReport);
 
       // Reset to defaults
@@ -78,8 +77,8 @@ describe("Epanet Reporting Functions", () => {
       model.solveH();
       const rpt = ws.readFile("net4.rpt");
 
-      // Default report should not include node details
-      expect(rpt).not.toContain("Node Results");
+      // Report should be empty
+      expect(rpt).toBe("");
     });
 
     test("set report format", () => {

@@ -272,16 +272,6 @@ export const apiDefinitions: Record<string, ApiFunctionDefinition> = {
     outputArgDefs: [{ name: "type", type: "int" }],
   },
 
-  setLinkType: {
-    wasmFunctionName: "_EN_setlinktype",
-    inputArgDefs: [
-      { typeHint: "number" }, // index
-      { typeHint: "enum" }, // linkType (LinkType enum)
-      { typeHint: "enum" }, // actionCode (ActionCodeType enum)
-    ],
-    outputArgDefs: [{ name: "newIndex", type: "int" }],
-  },
-
   getLinkNodes: {
     wasmFunctionName: "_EN_getlinknodes",
     inputArgDefs: [{ typeHint: "number" }], // index

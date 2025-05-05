@@ -68,6 +68,22 @@ describe("Data Curve Functions", () => {
       expect(point2.y).toBe(80);
     });
 
+    test("should throw error when x and y arrays have different lengths", () => {
+      // Add a new curve
+      model.addCurve("PUMP1");
+      const curveIndex = model.getCurveIndex("PUMP1");
+
+      // Attempt to set curve with mismatched array lengths
+      const xValues = [0, 1000, 2000];
+      const yValues = [100, 80]; // Different length than xValues
+
+      expect(() => {
+        model.setCurve(curveIndex, xValues, yValues);
+      }).toThrow(
+        "All array arguments must have the same length. First array length: 3, mismatched arrays: 2",
+      );
+    });
+
     test("should modify curve values", () => {
       // Add a new curve
       model.addCurve("PUMP1");
