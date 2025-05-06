@@ -23,7 +23,7 @@ echo "============================================="
     # Read the EPANET functions from the JSON file and add memory management functions
     EXPORTED_FUNCTIONS=$(cat build/epanet_exports.json )
 
-    emcc -O0 /opt/epanet/build/lib/libepanet2.a \
+    emcc -O3 /opt/epanet/build/lib/libepanet2.a \
     -o dist/index.js \
     -s WASM=1 \
     -s "EXPORTED_FUNCTIONS=${EXPORTED_FUNCTIONS}" \
@@ -34,10 +34,10 @@ echo "============================================="
      -s ASSERTIONS=0 \
    -s ALLOW_MEMORY_GROWTH=1 \
     -s SINGLE_FILE=1 \
+     -msimd128 \
+     --closure 1 \
     # -s SAFE_HEAP=0 \
     # -s INITIAL_MEMORY=1024MB \
-    # -msimd128 \
-    # --closure 1 \
      
     
     #-s EXPORT_ALL=1 \
