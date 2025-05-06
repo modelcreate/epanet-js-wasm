@@ -9,7 +9,7 @@ node_modules
 
 # Networks
 /packages/epanet-engine/tests/networks
-
+/packages/epanet-js/test/benchmark/networks
 
 # Typegen
 /packages/epanet-engine/type-gen/epanet2_2.d.ts
